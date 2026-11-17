@@ -29,29 +29,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     audit.configure(settings.audit_jsonl_file)
     catalog = workflows_mod.load(settings.workflows_file)  # fails fast on a bad config
     inventory = inventory_mod.load(settings.inventory_file)
-    for item in catalog.innovation.values():
-        for uc in item.use_cases:
-            if uc.url:
-                inventory.set_default_launcher(uc.id, uc.url)
-    st_sources = workflows_mod.load_sources(settings.use_case_sources_file, catalog)
     runs = RunManager(settings, db, catalog, inventory)
     runs.recover_interrupted()
 
     st = app.state
     st.settings, st.db, st.catalog, st.inventory = settings, db, catalog, inventory
     st.runs = runs
-    st.sources = st_sources
-    st.levels = workflows_mod.load_levels(settings.use_case_sources_file)
     st.templates = Jinja2Templates(directory=str(BASE / "templates"))
     st.templates.env.globals["logos"] = _find_logos()
-    st.templates.env.globals["innovation_items"] = list(catalog.innovation.values())
-    showcase = []
-    for item in catalog.innovation.values():
-        for uc in item.use_cases:
-            direct = uc.id not in st_sources and bool(inventory.launch_url(uc.id))   # no document text: open the dashboard itself
-            showcase.append({"title": uc.title, "new_tab": direct,
-                             "href": f"/launch/{uc.id}" if direct else f"/inovasi/{item.id}/{uc.id}"})
-    st.templates.env.globals["showcase_items"] = showcase
     st.templates.env.globals.update(
         status_id={"previewed": "pratinjau", "running": "berjalan", "succeeded": "berhasil", "failed": "gagal",
                    "cancelled": "dibatalkan", "expired": "kedaluwarsa"},
@@ -61,8 +46,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.mount("/static", StaticFiles(directory=str(BASE / "static")), name="static")
 
-    from .routes import admin, auth, dashboard, innovation, runs as runs_routes
-    for module in (auth, dashboard, innovation, runs_routes, admin):
+    from .routes import admin, auth, dashboard, runs as runs_routes
+    for module in (auth, dashboard, runs_routes, admin):
         app.include_router(module.router)
 
     @app.get("/healthz", include_in_schema=False)

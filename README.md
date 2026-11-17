@@ -22,11 +22,9 @@ Engineer ──> Portal (form, validation, preview, approval, audit) ──> Aut
                          └───────── status + log mirrored back ─────────────┘
 ```
 
-**Level explanation:** the Metrodata AI Use Case page ends with the Level 1 / 2 / 3 comparison (Assist, Accelerate, Act), drawn in HTML/CSS in the same form as the supplied image; its text is the `levels:` block in `config/use_case_sources.yaml`.
+**Navigation:** the top menu has Dashboard and, for admins, Pengguna and Log audit. Workflow run history is at `/runs` (link on the dashboard).
 
-**Navigation:** the top menu has Dashboard and, for admins, Pengguna and Log audit. The *Inovasi* and *Showcase* menus were removed from the navigation on request; their pages (`/inovasi/...`, `/showcase`) and content are still in the repository and reachable by direct address, but nothing links to them. Workflow run history is at `/runs` (link on the dashboard).
-
-**Language:** the portal interface is in Bahasa Indonesia (this documentation stays in English; audit action codes such as `workflow.preview` stay in English on purpose). The top menu has **Inovasi** with two items, *Metrodata AI Use Case* and *Splunk Innovation* (defined under `innovation:` in `config/workflows.yaml`). Each opens a page whose external link opens in a new tab once its https address is set in `config/inventory.yaml` under `launchers:` (keys `metrodata-ai-use-case`, `splunk-innovation`); until then the page shows a TODO. *Metrodata AI Use Case* is itself a small dashboard with three cards, each with its own icon and short explanation: **Joint Planning Session**, **Go To Market** and **Document Procurement** (plus four industry cards: Banking, *Trade Finance Document Examination* and *Customer Analytics and Credit Scoring*; Manufacturing, *Predictive Maintenance for Machines* and *Real-time Component Inspection*; `use_cases:` in `config/workflows.yaml`; their addresses use the keys `joint-planning-session`, `go-to-market`, `document-procurement`). Their pages are laid out like the source PDF's slides (page-2 rows with a Level pill; the seven-section blueprint grid with the architecture column; the PEOPLE/AI/AUTOMATION flow lanes), rendered from structured data in `config/use_case_sources.yaml`. Four cards (Banking and Manufacturing) carry text copied as-is from the source PDF (`config/use_case_sources.yaml`, shown on each card's page; mapping in `docs/Metrodata-AI-Use-Case-Mapping.md`). *Joint Planning Session*, *Go To Market* and *Document Procurement* have no document text (the PDF's "Agentic procurement document processing" was deliberately left out). **Go To Market** opens https://metrodata-ai-gtm.netlify.app and **Joint Planning Session** opens https://metrodata-ai-jps.netlify.app (default `url:` in `config/workflows.yaml`; an entry in `inventory.yaml` overrides it); Document Procurement still has no address (TODO). Launches are audited as `innovation.launch`.
+**Language:** the portal interface is in Bahasa Indonesia (this documentation stays in English; audit action codes such as `workflow.preview` stay in English on purpose).
 
 The portal also links each platform's devices to their own native consoles (optional `console_url`; the click goes through `/console/<device>` so it is audited as `device.console_open`, then the browser is redirected straight to the device; the portal proxies nothing), and the **Ekahau Design** tile is a launcher: one click opens the Ekahau environment (hosted on VMware) in a new tab. Set its address in `config/inventory.yaml` under `launchers: {ekahau: {url: https://...}}` (https only). No credentials are passed and each launch is audited as `platform.launch`.
 
@@ -62,7 +60,7 @@ app/
 config/
   workflows.yaml           workflow catalogue (all ASSUMPTION samples)
   inventory.example.yaml   placeholder devices (copy to inventory.yaml)
-tests/                     33 tests: auth, lockout, timeouts, CSRF, roles, flow, audit, contrast
+tests/                     37 tests: auth, lockout, timeouts, CSRF, roles, flow, audit, contrast
 ```
 
 ## 2. Setup

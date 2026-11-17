@@ -22,14 +22,8 @@ TEXT = [("text", "bg"), ("text", "surface"), ("muted", "bg"), ("muted", "surface
         ("accent", "surface"), ("accent-hover", "bg"), ("on-accent", "accent"), ("on-accent", "accent-hover"),
         ("on-danger", "danger"), ("danger", "bg"), ("danger", "danger-bg"), ("success", "bg"),
         ("warn-text", "warn-bg"), ("info-text", "info-bg"), ("accent", "info-bg"), ("danger-bg", "danger-bg"),
-        ("info-text", "bg"),
-        ("on-navy", "navy"), ("on-navy", "navy-alt"), ("on-navy", "slide-gold"), ("slide-gold-light", "navy"),
-        ("slide-gold", "bg"), ("slide-gold", "cream"), ("slide-gold", "lane-auto"), ("navy", "cream"), ("navy", "bg"),
-        ("navy", "lane-ai"), ("navy", "slide-gold-light"), ("navy", "lane-auto"), ("text", "lane-auto"), ("muted", "lane-auto"),
-        ("navy", "info-bg"), ("accent", "lane-auto"),
-        ("navy", "level-low-bg"), ("navy", "level-mid-bg"), ("slide-muted", "level-low-bg"), ("slide-muted", "level-mid-bg"),
-        ("on-navy-muted", "navy"), ("on-navy", "navy"), ("slide-gold-light", "navy-alt"), ("navy", "bg")]
-NONTEXT = [("border", "bg"), ("focus", "bg"), ("accent", "bg"), ("level-arrow", "bg"), ("level-arrow", "level-mid-bg")]
+        ("info-text", "bg")]
+NONTEXT = [("border", "bg"), ("focus", "bg"), ("accent", "bg")]
 
 
 def test_text_contrast_aa():

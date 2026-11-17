@@ -19,7 +19,7 @@ import yaml
 from .inventory import Inventory
 from .redact import is_secret_name
 
-ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi", "sparkles", "bulb", "meeting", "rocket", "document", "doc-check", "chart", "gear", "scan", "file", "people", "tools", "search", "person-check", "brain", "gears"}
+ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi"}
 PARAM_TYPES = {"string", "int", "bool", "enum", "ip", "cidr", "hostname", "device"}
 RISKS = ("low", "medium", "high")
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,40}$")
@@ -107,33 +107,10 @@ class Platform:
     launcher: bool = False  # tile opens an external tool (URL from inventory.yaml `launchers:`) instead of workflows
 
 
-@dataclass(frozen=True)
-class UseCase:
-    """A card on an innovation item's dashboard page. Opens an external dashboard (URL in inventory.yaml `launchers:`)."""
-    id: str
-    title: str
-    summary: str  # short explanation shown on the card
-    icon: str = "bulb"
-    assumption: bool = False
-    category: str = ""  # optional label shown on the card, e.g. an industry
-    url: str | None = None  # default https address; inventory.yaml `launchers:` overrides it
-
-
-@dataclass(frozen=True)
-class InnovationItem:
-    """An entry under the Inovasi menu. Opens an external page; its https URL is in inventory.yaml `launchers:`."""
-    id: str
-    title: str
-    summary: str
-    icon: str = "bulb"
-    use_cases: tuple[UseCase, ...] = ()
-
-
 @dataclass
 class WorkflowCatalog:
     platforms: dict[str, Platform] = field(default_factory=dict)
     workflows: dict[str, Workflow] = field(default_factory=dict)
-    innovation: dict[str, InnovationItem] = field(default_factory=dict)
 
     def for_platform(self, platform_id: str) -> list[Workflow]:
         return [w for w in self.workflows.values() if w.platform == platform_id]
@@ -166,43 +143,6 @@ def load(path: Path) -> WorkflowCatalog:
             launcher=bool(p.get("launcher", False)),
             icon=str(p.get("icon", "")),
         )
-
-    used_ids: set[str] = set(catalog.platforms)
-    for i, it in enumerate(raw.get("innovation") or []):
-        try:
-            item = InnovationItem(id=str(it["id"]), title=str(it["title"]), summary=str(it.get("summary", "")),
-                                  icon=str(it.get("icon", "bulb")))
-        except (KeyError, TypeError):
-            problems.append(f"innovation[{i}]: id and title are required")
-            continue
-        if not ID_RE.match(item.id):
-            problems.append(f"innovation[{i}]: id must match {ID_RE.pattern}")
-        if item.icon not in ICONS:
-            problems.append(f"innovation[{i}]: unknown icon {item.icon!r}")
-        if item.id in catalog.innovation or item.id in catalog.platforms:
-            problems.append(f"innovation[{i}]: duplicate id {item.id!r}")
-        ucs = []
-        for j, uc in enumerate(it.get("use_cases") or []):
-            try:
-                u = UseCase(id=str(uc["id"]), title=str(uc["title"]), summary=str(uc.get("summary", "")),
-                            icon=str(uc.get("icon", "bulb")), assumption=bool(uc.get("assumption", False)),
-                            category=str(uc.get("category", "")), url=str(uc["url"]) if uc.get("url") else None)
-            except (KeyError, TypeError):
-                problems.append(f"innovation[{i}].use_cases[{j}]: id and title are required")
-                continue
-            if not ID_RE.match(u.id):
-                problems.append(f"innovation[{i}].use_cases[{j}]: id must match {ID_RE.pattern}")
-            if u.icon not in ICONS:
-                problems.append(f"innovation[{i}].use_cases[{j}]: unknown icon {u.icon!r}")
-            if u.url and not u.url.startswith("https://"):
-                problems.append(f"innovation[{i}].use_cases[{j}]: url must start with https://")
-            if u.id in used_ids:
-                problems.append(f"innovation[{i}].use_cases[{j}]: duplicate id {u.id!r}")
-            used_ids.add(u.id)
-            ucs.append(u)
-        item = replace(item, use_cases=tuple(ucs))
-        used_ids.add(item.id)
-        catalog.innovation[item.id] = item
 
     for i, w in enumerate(raw.get("workflows") or []):
         where = f"workflows[{i}] ({w.get('id', '?') if isinstance(w, dict) else '?'})"
@@ -483,74 +423,3 @@ def replace_dispatch(wf: Workflow, **changes: Any) -> Workflow:
     d = wf.dispatch
     new = Dispatch(changes.get("backend", d.backend), changes.get("job", d.job), changes.get("payload", d.payload))
     return replace(wf, dispatch=new)
-
-
-def load_sources(path: Path, catalog: WorkflowCatalog) -> dict[str, dict]:
-    """Source text (copied as-is from a reference document) for innovation use-case cards.
-
-    Returns {use_case_id: entry}. A missing file means no source text. Unknown ids or a malformed structure
-    stop startup, like any other config error.
-    """
-    if not path.exists():
-        return {}
-    raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    known = {u.id for i in catalog.innovation.values() for u in i.use_cases}
-    problems: list[str] = []
-    cases = raw.get("cases") or {}
-    for cid, case in cases.items():
-        if cid not in known:
-            problems.append(f"use_case_sources: unknown use case id {cid!r}")
-            continue
-        if not isinstance(case, dict) or not isinstance(case.get("blocks"), list):
-            problems.append(f"use_case_sources.{cid}: 'blocks' must be a list")
-            continue
-        for k, b in enumerate(case["blocks"]):
-            loc = f"use_case_sources.{cid}.blocks[{k}]"
-            if not isinstance(b, dict) or not b.get("title"):
-                problems.append(f"{loc}: needs a title")
-                continue
-            if b.get("kind") == "blueprint":
-                need = ("problem", "solution", "trust", "readiness", "architecture", "impact", "effort", "roadmap")
-                for key in need:
-                    if key not in b:
-                        problems.append(f"{loc}: blueprint is missing {key!r}")
-            elif b.get("kind") == "flow":
-                cols = len(b.get("stages") or [])
-                for lane in b.get("lanes") or []:
-                    for st in lane.get("steps") or []:
-                        if st.get("arrow") not in (None, "up", "down"):
-                            problems.append(f"{loc}: step {st.get('n')} arrow must be up or down")
-                        if not (1 <= int(st.get("col", 0)) <= cols):
-                            problems.append(f"{loc}: step {st.get('n')} has a column outside the stages")
-                if not cols or not b.get("lanes"):
-                    problems.append(f"{loc}: flow needs stages and lanes")
-            else:
-                problems.append(f"{loc}: kind must be 'blueprint' or 'flow'")
-    if problems:
-        raise WorkflowConfigError(problems)
-    return {cid: dict(case, document=raw.get("document", "")) for cid, case in cases.items()}
-
-
-def load_levels(path: Path) -> dict | None:
-    """Level 1/2/3 explanation cards (text as in the supplied image). None when the file has no `levels`."""
-    if not path.exists():
-        return None
-    raw = (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("levels")
-    if not raw:
-        return None
-    problems = []
-    items = raw.get("items") or []
-    if len(items) != 3:
-        problems.append("levels.items must have exactly 3 entries")
-    for i, it in enumerate(items):
-        for key in ("number", "name", "tagline", "text", "icon", "steps"):
-            if key not in it:
-                problems.append(f"levels.items[{i}]: missing {key!r}")
-        if it.get("icon") not in {"help", "chart", "gear"}:
-            problems.append(f"levels.items[{i}]: icon must be help, chart or gear")
-        for st in it.get("steps") or []:
-            if st.get("style") not in {"solid", "outline"}:
-                problems.append(f"levels.items[{i}]: step style must be solid or outline")
-    if problems:
-        raise WorkflowConfigError(problems)
-    return raw

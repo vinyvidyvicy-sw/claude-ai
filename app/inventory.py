@@ -29,10 +29,6 @@ class Inventory:
         self._by_name = {d.name: d for d in devices}
         self._launchers = dict(launchers or {})
 
-    def set_default_launcher(self, key: str, url: str) -> None:
-        """Default address from workflows.yaml; an inventory.yaml `launchers:` entry takes precedence."""
-        self._launchers.setdefault(key, url)
-
     def launch_url(self, platform: str) -> str | None:
         """https URL for a launcher tile (e.g. Ekahau Design), or None if not configured."""
         return self._launchers.get(platform)

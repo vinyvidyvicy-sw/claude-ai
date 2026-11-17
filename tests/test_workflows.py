@@ -316,77 +316,6 @@ def test_logos_shown_only_when_files_exist(app):
         f.unlink()
 
 
-def test_ui_is_indonesian_and_inovasi_showcase_menus_are_removed(app):
-    c = client_for(app)
-    login(c, "bob", "staple battery horse")
-    html = c.get("/").text
-    assert '<html lang="id">' in html and "Pilih platform" in html and "Keluar" in html
-    nav = html.split('aria-label="Utama"')[1].split("</nav>")[0]
-    assert "Inovasi" not in nav and "Showcase" not in nav and "nav-menu" not in nav     # menus removed from the navigation
-    assert 'href="/inovasi' not in html and 'href="/showcase"' not in html
-    assert ">Dashboard</a>" in nav
-
-
-def test_innovation_pages_and_launch(app):
-    c = client_for(app)
-    login(c, "bob", "staple battery horse")
-    page = c.get("/inovasi/metrodata-ai-use-case")
-    assert page.status_code == 200
-    for title in ("Joint Planning Session", "Go To Market", "Document Procurement"):
-        assert title in page.text
-    assert page.text.count('class="icon"') == 8   # page icon + 7 cards
-    for title in ("Trade Finance Document Examination", "Customer Analytics and Credit Scoring",
-                  "Predictive Maintenance for Machines", "Real-time Component Inspection"):
-        assert title in page.text
-    assert page.text.count("badge-category") == 4 and "Banking" in page.text and "Manufacturing" in page.text
-    assert "Reads every page of a trade document set, checks it against the credit terms and the bank&#39;s rules, and explains each finding." in page.text
-    assert "Textract" not in page.text and "Agentic" not in page.text   # procurement text was removed on request
-    # no TODO notes, no source/'Dari dokumen' messages, no repeated "opens in new tab" hints on the list
-    for banned in ("TODO", "Dari dokumen", "dokumen PDF", "belum disiapkan", "Dibuka di tab baru", "Lihat penjelasan"):
-        assert banned not in page.text, banned
-    # cards with document text link to their page; JPS and GTM open their dashboards directly
-    assert 'href="/inovasi/metrodata-ai-use-case/banking-trade-finance-document-examination"' in page.text
-    assert 'href="/launch/go-to-market"' in page.text and 'href="/launch/joint-planning-session"' in page.text
-    assert c.get("/launch/metrodata-ai-use-case").headers["location"] == "/inovasi/metrodata-ai-use-case"
-    # each card has its own page; not configured -> TODO, launch falls back to that page
-    detail = c.get("/inovasi/metrodata-ai-use-case/document-procurement").text
-    assert "TODO" not in detail and "belum dikonfigurasi" not in detail and "Textract" not in detail
-    assert c.get("/launch/document-procurement").headers["location"] == "/inovasi/metrodata-ai-use-case/document-procurement"
-    app.state.inventory._launchers["document-procurement"] = "https://docs.example.invalid/"
-    assert 'href="/launch/document-procurement"' in c.get("/inovasi/metrodata-ai-use-case").text
-    r = c.get("/launch/document-procurement")
-    assert r.status_code == 303 and r.headers["location"] == "https://docs.example.invalid/"
-    # the two dashboards with committed default addresses open straight away
-    for key, url in (("go-to-market", "https://metrodata-ai-gtm.netlify.app"),
-                     ("joint-planning-session", "https://metrodata-ai-jps.netlify.app")):
-        r = c.get(f"/launch/{key}")
-        assert r.status_code == 303 and r.headers["location"] == url
-    assert c.get("/inovasi/metrodata-ai-use-case/nope").status_code == 404
-    app.state.inventory._launchers["splunk-innovation"] = "https://splunk-innovation.example.invalid/"
-    page = c.get("/inovasi/splunk-innovation")
-    assert 'href="/launch/splunk-innovation"' in page.text and 'target="_blank"' in page.text
-    r = c.get("/launch/splunk-innovation")
-    assert r.status_code == 303 and r.headers["location"] == "https://splunk-innovation.example.invalid/"
-    with app.state.db.conn() as db:
-        row = db.execute("SELECT actor, action, target FROM audit_log WHERE action='innovation.launch' AND target='splunk-innovation'").fetchone()
-    assert tuple(row) == ("bob", "innovation.launch", "splunk-innovation")
-    assert c.get("/inovasi/unknown").status_code == 404
-
-
-def test_inventory_launcher_overrides_default_and_default_must_be_https(app, tmp_path):
-    from app import workflows as wfm
-    from app.settings import ROOT
-    inv = app.state.inventory
-    inv._launchers["go-to-market"] = "https://override.example.invalid/"   # as from inventory.yaml
-    inv.set_default_launcher("go-to-market", "https://metrodata-ai-gtm.netlify.app")  # default must not replace it
-    assert inv.launch_url("go-to-market") == "https://override.example.invalid/"
-    bad = (ROOT / "config/workflows.yaml").read_text().replace("url: https://metrodata-ai-gtm.netlify.app", "url: http://insecure.example")
-    p = tmp_path / "w.yaml"; p.write_text(bad)
-    import pytest
-    with pytest.raises(wfm.WorkflowConfigError):
-        wfm.load(p)
-
-
 def test_portal_title(app):
     html = client_for(app).get("/login").text
     assert "Cisco &amp; Splunk Lab Portal" in html  # autoescaped in HTML
@@ -438,107 +367,13 @@ def test_device_console_link_is_audited(app):
     assert c.get("/console/tidak-ada").status_code == 404
 
 
-def test_use_case_pages_show_pdf_text_as_is_and_unknowns_say_so(app):
-    c = client_for(app)
-    login(c, "bob", "staple battery horse")
-    page = c.get("/inovasi/metrodata-ai-use-case/banking-trade-finance-document-examination").text
-    for text in ("Owner: Trade operations, with the checkers", "Target of two minutes or less per set",
-                 "Three Linux VMs on the bank&#39;s servers", "Phase 3, SIT, UAT and handover",
-                 "Banking, the document examination flow", "Every decision, override and source is written to the process log",
-                 "Dataiku and Amazon Bedrock, hybrid"):
-        assert text in page, text
-    assert "Halaman" not in page and "hal." not in page and "page 2" not in page   # page references are not shown in the UI
-    for banned in ("TODO", "Dari dokumen", "apa adanya", "Judul di dokumen", "belum dikonfigurasi"):
-        assert banned not in page, banned
-    one_liner = "Reads every page of a trade document set, checks it against the credit terms and the bank&#39;s rules, and explains each finding."
-    assert page.count(one_liner) == 1   # shown once, not repeated
-    for uid in ("joint-planning-session", "go-to-market", "document-procurement"):
-        p = c.get(f"/inovasi/metrodata-ai-use-case/{uid}").text
-        assert "Dari dokumen" not in p and "Halaman" not in p and "TODO" not in p
-
-
-def test_every_source_text_line_is_present_in_the_yaml_and_matches_the_catalog(app):
-    st = app.state
-    ids = {u.id for i in st.catalog.innovation.values() for u in i.use_cases}
-    assert set(st.sources) <= ids and set(st.sources) == ids - {"joint-planning-session", "go-to-market", "document-procurement"}
-    for cid, case in st.sources.items():
-        assert case["pages"] and case["blocks"] and case["overview"]["One-line description"]
-
-
-def test_slide_layouts_follow_the_pdf(app):
-    c = client_for(app)
-    login(c, "bob", "staple battery horse")
-    page = c.get("/inovasi/metrodata-ai-use-case/banking-trade-finance-document-examination").text
-    # blueprint: seven numbered sections + architecture, in the PDF's headings
-    for h in ("1. Problem statement and owner", "2. High level solution", "3. Level of trust and human gates",
-              "4. Data and system readiness", "High level solution, architecture", "5. Expected business impact",
-              "6. Effort, duration and team", "7. Sequence and roadmap"):
-        assert h in page, h
-    assert page.count('class="bp-card') == 5 and page.count('class="bp-block') == 3 and page.count("arch-step") == 5
-    assert "Level 2" in page and "Prepares, you decide" in page and "WHAT IT DOES" in page
-    # flow: stage columns and the three lanes with numbered steps placed in columns
-    assert "01</span> Receive" in page and 'aria-label="PEOPLE"' in page and 'aria-label="AI"' in page and 'aria-label="AUTOMATION"' in page
-    assert 'class="step col-5"' in page and page.count('class="stepnum"') == 11
-    assert page.count("lane-icon") == 3 and "arr-down" in page      # lane icons and gold arrows like the PDF
-    # the list page uses the PDF's row layout with a Level pill
-    lst = c.get("/inovasi/metrodata-ai-use-case").text
-    assert 'class="uc-row"' in lst and lst.count('class="pill"') == 4
-    assert 'data-n="1"' in page and 'src="/static/js/flow.js"' in page    # flow arrows are drawn by flow.js
-    assert c.get("/static/js/flow.js").status_code == 200
-
-
-def test_flow_steps_stay_inside_their_stage_columns(app):
-    for cid, case in app.state.sources.items():
-        for b in case["blocks"]:
-            if b["kind"] == "flow":
-                n = len(b["stages"])
-                steps = [s for lane in b["lanes"] for s in lane["steps"]]
-                assert all(1 <= s["col"] <= n for s in steps)
-                assert sorted(s["n"] for s in steps) == list(range(1, len(steps) + 1))   # steps 1..N, none lost
-                for lane in b["lanes"]:                                                      # one step per lane column
-                    cols = [s["col"] for s in lane["steps"]]
-                    assert len(cols) == len(set(cols))
-
-
-def test_card_icons_match_the_pdf_and_no_page_mentions_on_the_list(app):
-    c = client_for(app)
-    login(c, "bob", "staple battery horse")
-    lst = c.get("/inovasi/metrodata-ai-use-case").text
-    assert "hal." not in lst and "Halaman" not in lst
-    for uid, icon in (("banking-trade-finance-document-examination", "file"), ("banking-customer-analytics-credit-scoring", "people"),
-                      ("manufacturing-predictive-maintenance", "tools"), ("manufacturing-realtime-component-inspection", "search")):
-        uc = next(u for i in app.state.catalog.innovation.values() for u in i.use_cases if u.id == uid)
-        assert uc.icon == icon
-
-
-def test_run_history_link_stays_and_unlinked_pages_still_work_by_url(app):
+def test_inovasi_and_showcase_are_gone(app):
     c = client_for(app)
     login(c, "bob", "staple battery horse")
     html = c.get("/").text
-    assert 'href="/runs"' in html and c.get("/runs").status_code == 200
-    # content is kept in the repo and reachable by direct address, just not linked from the navigation
-    assert c.get("/showcase").status_code == 200
-    assert c.get("/inovasi/metrodata-ai-use-case").status_code == 200
-
-
-def test_level_explanation_cards_on_the_metrodata_page(app):
-    c = client_for(app)
-    login(c, "bob", "staple battery horse")
-    page = c.get("/inovasi/metrodata-ai-use-case").text
-    for text in ("LEVEL 1", "Assist", "Answers, on demand",
-                 "The system answers questions from your policies and records. Your people make every decision and every change.",
-                 "LEVEL 2", "Accelerate", "Prepares, you decide",
-                 "The system ranks, drafts and warns, so the work arrives prepared. Your team decides what happens next.",
-                 "LEVEL 3", "Act", "Acts within your limits",
-                 "The system runs routine steps inside rules and approval limits you set, and reports every action. Your people set the limits and review.",
-                 "You ask", "It answers", "It prepares", "It warns", "It acts", "It reports", "You review",
-                 "How much the system decides"):
-        assert text in page, text
-    assert page.count("WHAT IT DOES") == 3 and page.count('class="level level-') == 3 and page.count("You decide") == 2
-    assert page.index("LEVEL 1") < page.index('class="uc-row"')          # explanation sits above the use-case rows
-    for uc_id in ("banking-trade-finance-document-examination", "manufacturing-predictive-maintenance", "go-to-market", "document-procurement"):
-        d = c.get(f"/inovasi/metrodata-ai-use-case/{uc_id}").text
-        assert d.count('class="level level-') == 3 and "How much the system decides" in d
-        assert d.index("LEVEL 1") < (d.index('class="slide-summary"') if 'class="slide-summary"' in d else len(d))   # at the top of each use case
-    # not shown on pages that are not about the use cases
-    assert "LEVEL 1" not in c.get("/inovasi/splunk-innovation").text
+    nav = html.split('aria-label="Utama"')[1].split("</nav>")[0]
+    assert "Inovasi" not in nav and "Showcase" not in nav and ">Dashboard</a>" in nav
+    for path in ("/showcase", "/inovasi/metrodata-ai-use-case", "/inovasi/metrodata-ai-use-case/go-to-market", "/launch/go-to-market"):
+        assert c.get(path).status_code == 404, path
+    assert 'href="/runs"' in html and c.get("/runs").status_code == 200      # run history link stays
+    assert c.get("/launch/ekahau").status_code == 303                        # the Ekahau launcher tile still works

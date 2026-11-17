@@ -20,21 +20,3 @@ devices:
 # launchers:
 #   ekahau:
 #     url: https://<address-of-ekahau-design>
-#   metrodata-ai-use-case:         # menu Inovasi
-#     url: https://<address-of-metrodata-ai-use-case-page>
-#   joint-planning-session:        # dashboard di dalam Metrodata AI Use Case
-#     url: https://<address-of-joint-planning-session-dashboard>
-#   go-to-market:
-#     url: https://<address-of-go-to-market-dashboard>
-#   document-procurement:
-#     url: https://<address-of-document-procurement-dashboard>
-#   banking-trade-finance-document-examination:
-#     url: https://<address>
-#   banking-customer-analytics-credit-scoring:
-#     url: https://<address>
-#   manufacturing-predictive-maintenance:
-#     url: https://<address>
-#   manufacturing-realtime-component-inspection:
-#     url: https://<address>
-#   splunk-innovation:             # menu Inovasi
-#     url: https://<address-of-splunk-innovation-page>
