@@ -116,6 +116,16 @@ Open `https://<PORTAL_DOMAIN>`. The DNS name must resolve to the host; firewall:
 This setup keeps `PORTAL_COOKIE_SECURE=true`, so cookies are `Secure` and HSTS is sent. It is **untested in CI** (no container runtime was available while writing it).
 Production checklist: restrict source networks, back up the `portal-data` volume (users + audit log), ship the audit JSONL to your SIEM, keep any backend service credential out of git, and keep `PORTAL_EXECUTION_MODE=dry_run` until the backend integration is written and approved.
 
+### Deploying to a VMware ESXi lab VM (Ubuntu + nginx + systemd)
+
+A step-by-step guide in Indonesian is in `docs/Panduan-Deploy-ESXi.pdf` (source `docs/Panduan-Deploy-ESXi.html`): create the VM, connect it to GitHub with a read-only deploy key, install, run as a systemd service behind nginx HTTPS, and test from the server, a Mac and a Windows laptop. Ready-to-copy files: `deploy/portal.service`, `deploy/nginx-portal.conf`, `deploy/portal.env.example`. After any install or update, run the smoke test (standard library only; password is prompted, never a command-line argument):
+
+```bash
+python3 scripts/smoke_test.py https://<host> --username admin --insecure   # --insecure only for a self-signed lab certificate
+```
+
+This procedure has not been run on a real ESXi host yet (TODO: ESXi version, VM network, certificate policy).
+
 ## 3. Login flow and user store
 
 * `users` table: `username` (unique, case-insensitive), `password_hash` (argon2id, per-hash random salt),

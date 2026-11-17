@@ -1,0 +1,116 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Panduan Deploy ke Lab VMware ESXi</title><style>
+@page { size: A4; margin: 18mm 16mm; }
+body { font-family: Helvetica, Arial, sans-serif; font-size: 10.3pt; line-height: 1.45; color: #1c2733; }
+h1 { font-size: 21pt; margin: 0 0 4pt; color: #0a5aa8; }
+h2 { font-size: 14.5pt; color: #0a5aa8; border-bottom: 2px solid #0a5aa8; padding-bottom: 3pt; margin-top: 20pt; page-break-after: avoid; }
+h3 { font-size: 11.3pt; margin: 13pt 0 4pt; page-break-after: avoid; }
+pre { background: #f3f5f7; border: 1px solid #c9d1d9; border-left: 4px solid #0a5aa8; padding: 6pt 9pt; font-family: Menlo, Consolas, monospace; font-size: 8.6pt; white-space: pre-wrap; word-break: break-word; margin: 5pt 0 8pt; page-break-inside: avoid; }
+code { font-family: Menlo, Consolas, monospace; font-size: 9pt; background: #f3f5f7; padding: 0 2pt; }
+.step { margin: 9pt 0; }
+.n { display: inline-block; background: #0a5aa8; color: #fff; border-radius: 50%; width: 16pt; height: 16pt; text-align: center; line-height: 16pt; font-weight: bold; margin-right: 6pt; font-size: 9pt; }
+.note { background: #fff4d6; border-left: 4px solid #5c4300; padding: 5pt 9pt; margin: 7pt 0; page-break-inside: avoid; }
+.info { background: #e8f1fb; border-left: 4px solid #0a5aa8; padding: 5pt 9pt; margin: 7pt 0; page-break-inside: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 9.3pt; }
+th, td { border: 1px solid #c9d1d9; padding: 3.5pt 6pt; text-align: left; vertical-align: top; }
+th { background: #f3f5f7; }
+tr { page-break-inside: avoid; }
+.sub { color: #4b5a69; margin: 0 0 12pt; }
+.pb { page-break-before: always; }
+.diagram { font-family: Menlo, Consolas, monospace; font-size: 8.6pt; background: #f3f5f7; border: 1px solid #c9d1d9; padding: 8pt; white-space: pre; page-break-inside: avoid; }
+</style></head><body><h1>Panduan Deploy ke Lab VMware ESXi dan Pengujian</h1><p class="sub">Cisco &amp; Splunk Lab Portal: dari GitHub ke VM backend web server, lalu uji di server, Mac, dan laptop Windows</p><div class="info"><b>Tujuan.</b> Mengambil kode dari GitHub, menjalankannya di sebuah VM di lab VMware ESXi sebagai <b>backend web server</b>, lalu mengujinya dari server itu sendiri (localhost), dari Mac, dan dari laptop Windows. Portal berjalan dalam <b>mode DRY-RUN</b>: tidak ada perangkat yang disentuh. Semua perintah di bawah belum dicoba di ESXi Anda; skrip uji dan konfigurasi sudah dicoba di sandbox Linux (HTTP dan HTTPS self-signed).</div><div class="diagram">Laptop Mac / Windows
+   │  HTTPS 443
+   ▼
+[ VM di ESXi: Ubuntu Server ]
+   nginx (TLS) ──127.0.0.1:8000──&gt; portal (uvicorn + systemd)
+                                      └─ data/portal.db (pengguna, audit)
+VM ──SSH 22 atau 443──&gt; GitHub (deploy key, hanya-baca)
+VM ──HTTPS 443──&gt; pypi.org (pip install)</div><h2>0. Yang perlu disiapkan lebih dulu</h2><table>
+<tr><th>Item</th><th>Nilai yang disarankan</th><th>Status</th></tr>
+<tr><td>Versi ESXi dan cara akses (Host Client atau vCenter)</td><td>Apa pun yang mendukung VM Linux 64-bit</td><td>TODO: versi belum diketahui</td></tr>
+<tr><td>OS VM</td><td>Ubuntu Server 24.04 LTS (Python 3.12 bawaan; portal butuh Python 3.11 atau lebih baru)</td><td>ASSUMPTION</td></tr>
+<tr><td>Ukuran VM</td><td>2 vCPU, 4 GB RAM, disk 40 GB (thin)</td><td>ASSUMPTION</td></tr>
+<tr><td>Jaringan</td><td>Port group lab, IP tetap (atau DHCP reservation), gateway, DNS</td><td>TODO: nilai lab Anda</td></tr>
+<tr><td>Nama portal</td><td><code>portal.lab.local</code> (DNS atau file hosts) atau langsung IP VM</td><td>ASSUMPTION</td></tr>
+<tr><td>Akses internet dari VM</td><td>github.com (SSH 22 atau 443) dan pypi.org (HTTPS 443). Jika tidak ada, lihat bagian 3.6</td><td>TODO: konfirmasi</td></tr>
+<tr><td>Hak admin pada repo GitHub</td><td>Diperlukan untuk menambah deploy key</td><td>TODO: siapa pemiliknya</td></tr>
+</table><h2>1. Buat VM di ESXi</h2><div class="step"><span class="n">1</span><b>Unggah ISO.</b><p>Buka ESXi Host Client (<code>https://&lt;IP-ESXi&gt;</code>), menu <b>Storage</b>, pilih datastore, <b>Datastore browser</b>, <b>Upload</b>, lalu pilih ISO Ubuntu Server 24.04.</p></div><div class="step"><span class="n">2</span><b>Buat VM.</b><p><b>Virtual Machines</b>, <b>Create / Register VM</b>, <b>Create a new virtual machine</b>. Nama: <code>portal-lab-01</code>. Guest OS family: <b>Linux</b>, version: <b>Ubuntu Linux (64-bit)</b>. Pilih datastore.</p><p><b>Customize settings</b>: CPU 2, Memory 4 GB, Hard disk 40 GB (Thin provisioned), Network Adapter: port group lab Anda, CD/DVD Drive: <b>Datastore ISO file</b> (pilih ISO tadi) dan centang <b>Connect at power on</b>. Klik Finish.</p></div><div class="step"><span class="n">3</span><b>Instal Ubuntu.</b><p>Power on, buka <b>Console</b>. Di installer: atur IP tetap (atau DHCP), buat pengguna admin, dan <b>centang Install OpenSSH server</b>. Setelah selesai, lepas ISO dan reboot.</p></div><div class="step"><span class="n">4</span><b>Snapshot awal.</b><p>Setelah VM bisa login dan SSH berjalan, ambil <b>Snapshot</b> bernama <code>bersih-sebelum-portal</code>. Anda dapat kembali ke kondisi ini bila ada yang salah.</p></div><h2>2. Siapkan server</h2><p>Dari Mac atau Windows, masuk lewat SSH (PowerShell dan Terminal macOS sudah punya <code>ssh</code>):</p><pre>ssh &lt;pengguna-admin&gt;@&lt;IP-VM&gt;</pre><div class="step"><span class="n">1</span><b>Pembaruan dan paket.</b><pre>sudo apt update &amp;&amp; sudo apt -y upgrade
+sudo apt -y install python3 python3-venv python3-pip git nginx openssl ufw open-vm-tools
+python3 --version        # harus 3.11 atau lebih baru</pre></div><div class="step"><span class="n">2</span><b>Waktu.</b><p>Waktu yang benar penting untuk batas waktu sesi dan catatan audit. Zona waktu di bawah adalah ASSUMPTION.</p><pre>sudo timedatectl set-timezone Asia/Jakarta
+timedatectl            # &quot;System clock synchronized: yes&quot;</pre></div><div class="step"><span class="n">3</span><b>Pengguna layanan (tanpa hak root).</b><pre>sudo useradd --system --create-home --home-dir /opt/portal --shell /bin/bash portal
+sudo -u portal -H mkdir -p /opt/portal/.ssh
+sudo chmod 700 /opt/portal/.ssh</pre></div><div class="step"><span class="n">4</span><b>Firewall.</b><pre>sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+# lebih ketat (disarankan): izinkan 443 hanya dari subnet lab
+# sudo ufw allow from &lt;SUBNET-LAB&gt;/24 to any port 443 proto tcp</pre><div class="note">Port 8000 <b>tidak</b> dibuka. Hanya nginx (80/443) yang boleh dijangkau dari luar VM.</div></div><h2>3. Hubungkan server ke GitHub dan ambil kode</h2><p>Repo: <code>vinyvidyvicy-sw/claude-ai</code>, branch <code>ccr-5a472752-cizl40</code>. Cara yang disarankan untuk server adalah <b>deploy key</b> (kunci SSH khusus, hanya-baca, hanya untuk satu repo), bukan akun pribadi.</p><h3>3.1 Cek koneksi keluar</h3><pre>curl -sI https://github.com | head -1        # HTTP/2 200
+curl -sI https://pypi.org | head -1          # HTTP/2 200</pre><h3>3.2 Buat kunci SSH untuk pengguna portal</h3><pre>sudo -u portal -H ssh-keygen -t ed25519 -C &quot;portal-lab-deploy&quot; -f /opt/portal/.ssh/id_ed25519 -N &quot;&quot;
+sudo cat /opt/portal/.ssh/id_ed25519.pub     # salin seluruh barisnya</pre><div class="note">Kunci tanpa passphrase karena layanan berjalan tanpa interaksi. Risikonya dibatasi dengan membuatnya <b>hanya-baca</b> di GitHub (langkah berikut). Jangan salin kunci <b>privat</b> (file tanpa .pub) ke mana pun.</div><h3>3.3 Daftarkan sebagai Deploy key di GitHub</h3><ol><li>Buka repo di GitHub, lalu <b>Settings</b>, <b>Deploy keys</b>, <b>Add deploy key</b>.</li><li>Title: <code>portal-lab-01</code>. Key: tempel isi file <code>.pub</code>.</li><li><b>Jangan</b> centang <i>Allow write access</i>. Klik <b>Add key</b>.</li></ol><p>Menu ini hanya terlihat oleh pemilik atau admin repo.</p><h3>3.4 Uji koneksi</h3><pre>sudo -u portal -H ssh -T git@github.com</pre><p>Pertama kali akan muncul pertanyaan fingerprint. Bandingkan dengan fingerprint resmi di dokumentasi GitHub (cari "GitHub's SSH key fingerprints") sebelum mengetik <code>yes</code>. Hasil yang benar: <i>Hi vinyvidyvicy-sw/claude-ai! You've successfully authenticated, but GitHub does not provide shell access.</i></p><p>Jika port 22 diblokir, pakai SSH lewat port 443:</p><pre>sudo -u portal -H tee /opt/portal/.ssh/config &gt;/dev/null &lt;&lt;&#x27;EOF&#x27;
+Host github.com
+  Hostname ssh.github.com
+  Port 443
+  User git
+EOF
+sudo chmod 600 /opt/portal/.ssh/config</pre><h3>3.5 Ambil kode</h3><pre>sudo -u portal -H git clone git@github.com:vinyvidyvicy-sw/claude-ai.git /opt/portal/claude-ai
+cd /opt/portal/claude-ai
+sudo -u portal -H git checkout ccr-5a472752-cizl40
+sudo -u portal -H git log --oneline | head -3</pre><div class="note">Alternatif tanpa deploy key: HTTPS dengan <i>fine-grained personal access token</i> (hanya repo ini, izin <b>Contents: Read-only</b>, punya tanggal kedaluwarsa). Token itu rahasia: jangan ditulis di skrip, chat, atau email. Deploy key lebih disarankan untuk server.</div><h3>3.6 Jika VM tidak punya akses internet (belum diuji)</h3><pre># Di laptop yang punya internet:
+git clone git@github.com:vinyvidyvicy-sw/claude-ai.git &amp;&amp; cd claude-ai
+git checkout ccr-5a472752-cizl40
+git bundle create portal.bundle --all
+pip download -r requirements.txt -d wheels --only-binary=:all: \
+    --platform manylinux2014_x86_64 --python-version 3.12
+scp portal.bundle &lt;pengguna&gt;@&lt;IP-VM&gt;:/tmp/ ; scp -r wheels &lt;pengguna&gt;@&lt;IP-VM&gt;:/tmp/
+# Di VM:
+sudo -u portal -H git clone /tmp/portal.bundle /opt/portal/claude-ai
+# lalu pada langkah 4.1 pakai: pip install --no-index --find-links /tmp/wheels -r requirements.txt</pre><h2 class='pb'>4. Pasang aplikasi</h2><div class="step"><span class="n">1</span><b>Lingkungan Python dan dependensi.</b><pre>cd /opt/portal/claude-ai
+sudo -u portal -H python3 -m venv .venv
+sudo -u portal -H .venv/bin/pip install --upgrade pip
+sudo -u portal -H .venv/bin/pip install -r requirements.txt
+sudo -u portal -H mkdir -p data</pre></div><div class="step"><span class="n">2</span><b>Inventaris perangkat lab.</b><p>Salin contoh lalu isi perangkat sungguhan (nama, platform, alamat). File ini tidak ikut ke Git. Portal <b>tidak menyimpan kredensial perangkat</b>.</p><pre>sudo -u portal -H cp config/inventory.example.yaml config/inventory.yaml
+sudo -u portal -H nano config/inventory.yaml</pre><p>Di file yang sama Anda bisa menambah <code>launchers:</code> (misalnya alamat Ekahau Design dan Document Procurement). Lihat komentar di dalam file.</p></div><div class="step"><span class="n">3</span><b>Konfigurasi lingkungan.</b><pre>sudo mkdir -p /etc/portal
+sudo cp deploy/portal.env.example /etc/portal/portal.env
+sudo chown root:portal /etc/portal/portal.env
+sudo chmod 640 /etc/portal/portal.env
+sudo nano /etc/portal/portal.env</pre><div class="note"><b>Tahap A</b> (uji HTTP di server dulu): ubah menjadi <code>PORTAL_COOKIE_SECURE=false</code>. Setelah nginx HTTPS aktif (bagian 6), kembalikan ke <code>true</code>. Biarkan <code>PORTAL_EXECUTION_MODE=dry_run</code>.</div></div><div class="step"><span class="n">4</span><b>Buat admin pertama.</b><pre>sudo -u portal -H bash -c &#x27;set -a; . /etc/portal/portal.env; set +a; cd /opt/portal/claude-ai &amp;&amp; .venv/bin/python -m app.cli create-admin admin&#x27;</pre><p>Isi kata sandi (minimal 12 karakter) dua kali. Kata sandi tidak tampil saat diketik dan tidak disimpan dalam bentuk teks biasa.</p></div><h2>5. Jalankan sebagai layanan (systemd) dan uji HTTP di server</h2><pre>sudo cp deploy/portal.service /etc/systemd/system/portal.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now portal
+sudo systemctl status portal --no-pager         # active (running)
+curl -s http://127.0.0.1:8000/healthz           # ok
+sudo journalctl -u portal -n 30 --no-pager      # log aplikasi</pre><p>Layanan hanya mendengarkan <code>127.0.0.1:8000</code> (tidak terlihat dari jaringan), berjalan sebagai pengguna <code>portal</code>, hanya boleh menulis ke folder <code>data</code>, dan hidup otomatis setelah reboot.</p><p>Uji cepat Tahap A (di server):</p><pre>python3 scripts/smoke_test.py http://127.0.0.1:8000 --username admin</pre><h2 class='pb'>6. HTTPS dengan nginx (Tahap B)</h2><p>Browser dan cookie sesi (bertanda <code>Secure</code>) membutuhkan HTTPS untuk akses dari laptop. Contoh di bawah memakai sertifikat <b>self-signed</b> untuk lab. Untuk lingkungan yang lebih rapi, minta sertifikat dari CA internal organisasi (TODO).</p><div class="step"><span class="n">1</span><b>Buat sertifikat.</b><pre>sudo mkdir -p /etc/ssl/portal
+sudo openssl req -x509 -nodes -newkey rsa:2048 -sha256 -days 365 \
+  -keyout /etc/ssl/portal/portal.key -out /etc/ssl/portal/portal.crt \
+  -subj &quot;/CN=portal.lab.local&quot; \
+  -addext &quot;subjectAltName=DNS:portal.lab.local,IP:&lt;IP-VM&gt;&quot;
+sudo chmod 600 /etc/ssl/portal/portal.key</pre></div><div class="step"><span class="n">2</span><b>Pasang konfigurasi nginx.</b><pre>cd /opt/portal/claude-ai
+sudo cp deploy/nginx-portal.conf /etc/nginx/sites-available/portal
+sudo sed -i &#x27;s/PORTAL_HOST/portal.lab.local/g&#x27; /etc/nginx/sites-available/portal
+sudo ln -s /etc/nginx/sites-available/portal /etc/nginx/sites-enabled/portal
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t &amp;&amp; sudo systemctl reload nginx</pre><p>Jika Anda memakai IP saja (tanpa nama), ganti <code>portal.lab.local</code> dengan <code>&lt;IP-VM&gt;</code>.</p></div><div class="step"><span class="n">3</span><b>Aktifkan cookie Secure.</b><pre>sudo sed -i &#x27;s/^PORTAL_COOKIE_SECURE=.*/PORTAL_COOKIE_SECURE=true/&#x27; /etc/portal/portal.env
+sudo systemctl restart portal</pre></div><div class="step"><span class="n">4</span><b>Nama portal di laptop (jika belum ada di DNS).</b><p>Tambahkan baris <code>&lt;IP-VM&gt;  portal.lab.local</code> ke file hosts: Mac di <code>/etc/hosts</code> (<code>sudo nano /etc/hosts</code>); Windows di <code>C:\Windows\System32\drivers\etc\hosts</code> (buka Notepad sebagai Administrator).</p></div><div class="step"><span class="n">5</span><b>Percayai sertifikat (opsional, menghilangkan peringatan browser).</b><p>Ambil sertifikat: <code>scp &lt;pengguna&gt;@&lt;IP-VM&gt;:/etc/ssl/portal/portal.crt .</code></p><p><b>Mac:</b> klik dua kali <code>portal.crt</code>, Keychain Access, cari "portal.lab.local", Get Info, Trust, <i>Always Trust</i>.<br><b>Windows:</b> PowerShell sebagai Administrator: <code>certutil -addstore -f Root portal.crt</code>.<br>Tanpa langkah ini browser tetap bisa dipakai setelah Anda memilih <i>Lanjutkan / Proceed</i> pada peringatan.</p></div><h2 class='pb'>7. Pengujian</h2><h3>7A. Di server (localhost)</h3><pre>systemctl is-active portal nginx                         # active  active
+curl -s http://127.0.0.1:8000/healthz                    # ok
+curl -sI http://127.0.0.1/ | head -3                     # 301 -&gt; https
+curl -skI https://127.0.0.1/ | head -3                   # 303 -&gt; /login
+ss -tlnp | grep -E &#x27;:(80|443|8000)\b&#x27;                    # 8000 hanya di 127.0.0.1
+cd /opt/portal/claude-ai
+python3 scripts/smoke_test.py https://127.0.0.1 --username admin --insecure</pre><p>Skrip uji asap memeriksa: server hidup, halaman login dan aset, header keamanan, penolakan login pengguna tak dikenal, login sungguhan, cookie <code>Secure</code>/<code>HttpOnly</code>, 8 tile di dashboard, menu Inovasi, beberapa halaman, dan keluar. Hasil akhir harus <b>SEMUA LULUS</b>.</p><p>Opsional, uji otomatis kode (38 tes):</p><pre>sudo -u portal -H .venv/bin/pip install -r requirements-dev.txt
+sudo -u portal -H .venv/bin/python -m pytest -q          # 38 passed</pre><h3>7B. Dari Mac</h3><pre>ping -c 3 &lt;IP-VM&gt;
+nc -vz &lt;IP-VM&gt; 443                                       # succeeded
+# Browser: https://portal.lab.local  (atau https://&lt;IP-VM&gt;)
+# Uji otomatis (salin skripnya atau clone repo di Mac):
+python3 scripts/smoke_test.py https://portal.lab.local --username admin --insecure</pre><p><b>Akses lewat "localhost" di Mac (terowongan SSH)</b>, berguna bila port 443 tidak terbuka ke laptop Anda:</p><pre>ssh -N -L 8443:127.0.0.1:443 &lt;pengguna&gt;@&lt;IP-VM&gt;          # biarkan terbuka
+# Browser: https://localhost:8443   (peringatan sertifikat: lanjutkan)</pre><h3>7C. Dari laptop Windows (PowerShell)</h3><pre>Test-NetConnection &lt;IP-VM&gt; -Port 443                     # TcpTestSucceeded : True
+# Browser: https://portal.lab.local  (atau https://&lt;IP-VM&gt;)
+python scripts\smoke_test.py https://portal.lab.local --username admin --insecure
+# (jika &quot;python&quot; tidak dikenali, pakai: py scripts\smoke_test.py ...)
+# Terowongan SSH ke &quot;localhost&quot; (OpenSSH bawaan Windows 10/11):
+ssh -N -L 8443:127.0.0.1:443 &lt;pengguna&gt;@&lt;IP-VM&gt;
+# Browser: https://localhost:8443</pre><div class="note">Terowongan ke port <b>443</b> (bukan 8000) dipakai agar cookie <code>Secure</code> tetap berfungsi. Jika memakai <code>http://localhost:8000</code> lewat terowongan ke port 8000, Anda harus mengatur <code>PORTAL_COOKIE_SECURE=false</code> dan beberapa browser (terutama Safari) tetap bisa menolak login.</div><h3>7D. Daftar uji fungsional (di browser, semua mode DRY-RUN)</h3><table><tr><th>#</th><th>Langkah</th><th>Hasil yang diharapkan</th></tr><tr><td>1</td><td>Buka halaman login</td><td>Latar putih; judul tebal di tengah; logo MII dan Metrodata di kanan atas; topologi di kiri, rak di kanan form</td></tr><tr><td>2</td><td>Login dengan kata sandi salah</td><td>Pesan gagal umum (tidak membocorkan apakah pengguna ada)</td></tr><tr><td>3</td><td>Login sebagai admin</td><td>Dashboard dengan 8 tile berikon; banner Mode DRY-RUN</td></tr><tr><td>4</td><td>Menu Inovasi</td><td>Dua item: Metrodata AI Use Case dan Splunk Innovation</td></tr><tr><td>5</td><td>Inovasi, Metrodata AI Use Case</td><td>Tiga kartu (Joint Planning Session, Go To Market, Document Procurement). Dua kartu pertama terbuka di tab baru ke situs Netlify; Document Procurement menampilkan TODO</td></tr><tr><td>6</td><td>Tile Ekahau Design</td><td>Halaman TODO sampai alamat diisi di <code>launchers:</code>; setelah diisi, terbuka di tab baru</td></tr><tr><td>7</td><td>NX-OS, Buat VLAN: isi VLAN 9999</td><td>Pesan kesalahan berbahasa Indonesia, tidak ada proses dibuat</td></tr><tr><td>8</td><td>Isi VLAN 100 dan nama valid, Pratinjau perubahan</td><td>Halaman pratinjau; status <i>pratinjau</i>; belum ada log</td></tr><tr><td>9</td><td>Konfirmasi (simulasi)</td><td>Status <i>berhasil</i>; log menyebut DRY-RUN dan tidak ada yang dikirim</td></tr><tr><td>10</td><td>Menu Riwayat dan Log audit</td><td>Proses tampil; audit mencatat preview, confirm, run; tanpa kata sandi</td></tr><tr><td>11</td><td>Pengguna, buat engineer</td><td>Kata sandi sementara tampil sekali; login pertama memaksa ganti kata sandi</td></tr><tr><td>12</td><td>5 kali salah kata sandi untuk engineer</td><td>Akun terkunci; admin dapat Buka kunci</td></tr><tr><td>13</td><td>Idle timeout (set <code>PORTAL_SESSION_IDLE_MINUTES=1</code> sementara)</td><td>Setelah 1 menit diam, halaman meminta login lagi</td></tr><tr><td>14</td><td>DevTools, Application, Cookies</td><td>Cookie sesi: HttpOnly, Secure, SameSite=Lax</td></tr><tr><td>15</td><td><code>sudo systemctl restart portal</code>, lalu reboot VM</td><td>Layanan hidup lagi sendiri; pengguna dan audit masih ada</td></tr></table><h2 class='pb'>8. Memperbarui dari GitHub, backup</h2><pre># 1. Di ESXi: ambil snapshot &quot;sebelum-update&quot;. 2. Backup database:
+cd /opt/portal/claude-ai
+sudo -u portal -H .venv/bin/python -c &quot;import sqlite3,datetime; s=sqlite3.connect(&#x27;data/portal.db&#x27;); d=sqlite3.connect(&#x27;data/backup-%s.db&#x27;%datetime.date.today()); s.backup(d); print(&#x27;ok&#x27;)&quot;
+# 3. Update:
+sudo -u portal -H git pull
+sudo -u portal -H .venv/bin/pip install -r requirements.txt
+sudo systemctl restart portal
+python3 scripts/smoke_test.py https://127.0.0.1 --username admin --insecure</pre><p>Cadangkan juga <code>config/inventory.yaml</code> dan <code>/etc/portal/portal.env</code> (keduanya tidak ada di Git). Salin file backup ke luar VM.</p><h2>9. Masalah umum</h2><table><tr><th>Gejala</th><th>Penyebab dan solusi</th></tr><tr><td><code>Permission denied (publickey)</code> saat clone</td><td>Deploy key belum ditambahkan, salah repo, atau perintah tidak dijalankan sebagai pengguna <code>portal</code>. Cek: <code>sudo -u portal -H ssh -vT git@github.com</code></td></tr><tr><td>Clone/pip time out</td><td>Port 22 atau internet diblokir. Pakai SSH port 443 (3.4), atur proxy (<code>pip --proxy</code>, <code>git config http.proxy</code>), atau jalur offline (3.6)</td></tr><tr><td><code>systemctl status portal</code> gagal</td><td>Lihat <code>journalctl -u portal -n 50</code>. Penyebab umum: path salah di <code>portal.env</code>, <code>.venv</code> belum dibuat, <code>inventory.yaml</code> salah format</td></tr><tr><td>Error menulis database / <i>readonly database</i></td><td>Folder <code>data</code> bukan milik <code>portal</code>: <code>sudo chown -R portal:portal /opt/portal/claude-ai/data</code></td></tr><tr><td>nginx <b>502 Bad Gateway</b></td><td>Portal tidak berjalan: <code>sudo systemctl restart portal</code> lalu cek log</td></tr><tr><td>Login tidak berpengaruh (kembali ke form)</td><td>Cookie Secure lewat HTTP biasa. Pakai HTTPS, atau Tahap A dengan <code>PORTAL_COOKIE_SECURE=false</code> hanya untuk uji di server</td></tr><tr><td>Peringatan sertifikat di browser</td><td>Normal untuk self-signed. Percayai sertifikat (6.5) atau gunakan sertifikat CA internal</td></tr><tr><td>Tidak bisa menjangkau 443 dari laptop</td><td>Cek <code>ufw status</code>, port group ESXi, firewall jaringan lab; <code>Test-NetConnection</code> atau <code>nc -vz</code> dari laptop</td></tr><tr><td>Python di Ubuntu 22.04 terlalu lama (3.10)</td><td>Gunakan Ubuntu 24.04, atau pasang Python 3.11+ (mis. dari PPA deadsnakes) lalu buat ulang <code>.venv</code></td></tr><tr><td>Waktu di log salah</td><td>Perbaiki NTP/zona waktu (bagian 2.2); VM di ESXi juga sebaiknya sinkron waktu</td></tr><tr><td>Gambar topologi/logo tidak muncul</td><td>Pastikan file ada di <code>app/static/img</code> pada branch yang benar; hard-refresh browser</td></tr></table><h2>10. Catatan keamanan dan item terbuka</h2><ul><li>Halaman login bisa dibuka tanpa masuk dan memuat gambar topologi lab. Tempatkan portal di jaringan lab/internal dan batasi sumber lewat firewall.</li><li>Portal tidak memegang kredensial perangkat; backend otomasi yang akan melakukannya (belum ada, TODO). Mode <code>live</code> jangan diaktifkan sebelum itu ada dan disetujui.</li><li>Deploy key bersifat hanya-baca; cabut dari GitHub (Settings, Deploy keys) bila VM dihentikan.</li><li>Branch <code>ccr-5a472752-cizl40</code> belum digabung ke branch utama. Setelah disetujui, gabungkan lewat pull request agar server cukup <code>git pull</code> tanpa <code>checkout</code>.</li><li><b>TODO dari Anda:</b> versi ESXi, OS dan IP/DNS VM, apakah VM punya internet/proxy, kebijakan sertifikat (CA internal?), siapa admin repo GitHub, kebijakan backup, dan alamat dasbor Document Procurement serta Ekahau Design.</li></ul></body></html>

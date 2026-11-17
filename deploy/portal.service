@@ -1,0 +1,24 @@
+[Unit]
+Description=Cisco and Splunk Lab Portal (backend web server)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=portal
+Group=portal
+WorkingDirectory=/opt/portal/claude-ai
+EnvironmentFile=/etc/portal/portal.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/portal/claude-ai/.venv/bin/python -m uvicorn app.main:app_factory --factory --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=on-failure
+RestartSec=3
+
+# Hardening: layanan hanya boleh menulis ke folder data
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/portal/claude-ai/data
+
+[Install]
+WantedBy=multi-user.target
