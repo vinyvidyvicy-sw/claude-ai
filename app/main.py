@@ -38,6 +38,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.settings, st.db, st.catalog, st.inventory = settings, db, catalog, inventory
     st.credentials, st.runs = credentials, runs
     st.templates = Jinja2Templates(directory=str(BASE / "templates"))
+    st.templates.env.globals["logos"] = _find_logos()
 
     app.mount("/static", StaticFiles(directory=str(BASE / "static")), name="static")
 
@@ -103,3 +104,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 def app_factory() -> FastAPI:  # for `uvicorn app.main:app_factory --factory`
     return create_app()
+
+
+# Company logos: drop the supplied files into app/static/img/ using these base names
+# (.svg, .png or .webp). Missing files are simply not shown.
+LOGO_SLOTS = (
+    ("logo-mii", "PT Mitra Integrasi Informatika"),
+    ("logo-metrodata", "PT Metrodata Electronics Tbk"),
+)
+
+
+def _find_logos() -> list[dict]:
+    found = []
+    for base, alt in LOGO_SLOTS:
+        for ext in ("svg", "png", "webp"):
+            if (BASE / "static" / "img" / f"{base}.{ext}").is_file():
+                found.append({"src": f"/static/img/{base}.{ext}", "alt": alt})
+                break
+    return found

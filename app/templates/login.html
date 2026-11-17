@@ -2,6 +2,7 @@
 {% block title %}Sign in{% endblock %}
 {% block content %}
 <section class="card narrow" aria-labelledby="h">
+  {% if logos %}<div class="logos logos-login">{% for l in logos %}<img src="{{ l.src }}" alt="{{ l.alt }}" height="48">{% endfor %}</div>{% endif %}
   <h1 id="h">Sign in</h1>
   {% if notice %}<p class="notice" role="status">{{ notice }}</p>{% endif %}
   {% if error %}<p class="alert" role="alert" data-focus>{{ error }}</p>{% endif %}

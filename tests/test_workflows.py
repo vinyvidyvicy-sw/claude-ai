@@ -191,3 +191,17 @@ def test_security_headers(app):
     r = client_for(app).get("/login")
     assert "frame-ancestors 'none'" in r.headers["content-security-policy"]
     assert r.headers["cache-control"] == "no-store"
+
+
+def test_logos_shown_only_when_files_exist(app):
+    from app import main
+    assert main._find_logos() == [] or all(l["src"].startswith("/static/img/") for l in main._find_logos())
+    import pathlib
+    f = pathlib.Path(main.BASE / "static/img/logo-mii.svg")
+    f.write_text('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/>')
+    try:
+        app.state.templates.env.globals["logos"] = main._find_logos()
+        html = client_for(app).get("/login").text
+        assert "/static/img/logo-mii.svg" in html and "PT Mitra Integrasi Informatika" in html
+    finally:
+        f.unlink()

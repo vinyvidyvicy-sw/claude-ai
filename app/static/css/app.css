@@ -124,3 +124,8 @@ tbody th { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 @media (forced-colors: active) { .btn { border: 2px solid ButtonText; } .badge { border: 1px solid CanvasText; } }
 .card > h2:first-child, .card > h1:first-child { margin-top: 0; }
+
+.logos { display: flex; align-items: center; gap: 1rem; }
+.logos img { height: 2.25rem; width: auto; max-width: 10rem; object-fit: contain; }
+.logos-login { justify-content: center; margin-bottom: 1rem; }
+.logos-login img { height: 3rem; max-width: 12rem; }

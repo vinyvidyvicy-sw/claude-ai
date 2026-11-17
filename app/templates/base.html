@@ -12,7 +12,8 @@
   <a class="skip-link" href="#main">Skip to main content</a>
   <header class="site-header">
     <div class="container header-row">
-      {# TODO(brand): official logo goes here only once the organisation confirms it may use it. #}
+      {# TODO(brand): no Cisco logo until the organisation confirms it may use it. #}
+      {% if logos %}<div class="logos">{% for l in logos %}<img src="{{ l.src }}" alt="{{ l.alt }}" height="36">{% endfor %}</div>{% endif %}
       <a class="brand" href="/">{{ app_title }}</a>
       {% if principal %}
       <nav aria-label="Primary" class="nav">
