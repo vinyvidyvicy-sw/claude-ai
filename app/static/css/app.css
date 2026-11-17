@@ -288,3 +288,19 @@ h1.with-icon .icon { width: 3.25rem; height: 3.25rem; }
 .lane-automation .step { background: var(--color-navy-alt); color: var(--color-on-navy); }
 .lane-automation .stepnum { background: var(--color-lane-ai); color: var(--color-navy); }
 .slide-summary .uc-rows { margin-top: 0.5rem; }
+
+/* ===== Visual seperti PDF: ikon bulat, panah emas, ikon jalur ===== */
+.uc-row .icon { background: var(--color-bg); color: var(--color-navy); border: 1px solid var(--color-border-soft); }
+.uc-row:nth-child(even) .icon { background: var(--color-bg); }
+.arch-step:not(:last-child)::after { border-top-color: var(--color-slide-arrow); }
+.stage { position: relative; }
+.stage:not(:last-child)::after { content: ""; position: absolute; right: -0.62rem; top: 50%; transform: translateY(-50%); border: 0.35rem solid transparent; border-left: 0.5rem solid var(--color-slide-arrow); border-right: 0; z-index: 1; }
+.lane-label { align-items: flex-start; }
+.lane-icon { display: inline-flex; align-items: center; justify-content: center; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--color-navy); color: var(--color-on-navy); margin-bottom: 0.3rem; }
+.step { position: relative; }
+.arr-up::before, .arr-down::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); border: 0.42rem solid transparent; z-index: 1; }
+.arr-up::before { top: -0.95rem; border-bottom: 0.65rem solid var(--color-slide-arrow); border-top: 0; }
+.arr-down::after { bottom: -0.95rem; border-top: 0.65rem solid var(--color-slide-arrow); border-bottom: 0; }
+@media (forced-colors: active) { .lane-icon, .pill { border: 1px solid CanvasText; } }
+.lane-icon .icon { width: auto; height: auto; background: transparent; border: 0; color: inherit; border-radius: 0; }
+.lane-icon svg { width: 1.5rem; height: 1.5rem; }

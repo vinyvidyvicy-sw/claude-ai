@@ -4,7 +4,8 @@
 # Pada slide flow, `col` adalah kolom tahap tempat langkah itu diletakkan di slide (hanya tata letak).
 # Sengaja tidak dimasukkan (atas permintaan): "Agentic procurement document processing" (hal. 2, 11, 12);
 # kartu joint-planning-session dan go-to-market dilewati.
-document: 'Metrodata_AI_Use_Case.pdf (13 pages: 1 title, 2-12 content, 13 ''Thank You!'')'
+# Pada slide flow, `arrow` (up/down) adalah panah emas pada langkah itu (hanya tata letak).
+document: Metrodata_AI_Use_Case.pdf
 cases:
   banking-trade-finance-document-examination:
     pdf_title: Trade finance document examination
@@ -118,6 +119,7 @@ cases:
         - n: 3
           text: 'The AI reads each page once: the document it belongs to, and every field'
           col: 2
+          arrow: down
         - n: 7
           text: The AI examines the documents against the rules, explains each finding and drafts the notice
           col: 4
@@ -251,12 +253,15 @@ cases:
         - n: 3
           text: Customers grouped into segments and scored for churn risk
           col: 3
+          arrow: up
         - n: 5
           text: Next offer and profitability estimated for each customer
           col: 4
+          arrow: up
         - n: 7
           text: Credit score calculated for each civil servant debtor
           col: 5
+          arrow: up
       - key: AUTOMATION
         sub: Loads, prepares, refreshes
         steps:
@@ -373,6 +378,7 @@ cases:
         - n: 4
           text: New readings scored for the risk of failure
           col: 3
+          arrow: down
         - n: 8
           text: The model retrained as new failures are recorded
           col: 5
@@ -385,14 +391,16 @@ cases:
         - n: 2
           text: Readings cleaned and joined with the repair history
           col: 2
+          arrow: up
         - n: 5
           text: A warning sent when a machine's risk is high
           col: 3
         - n: 7
           text: Each repair recorded and added to the history
           col: 5
+          arrow: up
   manufacturing-realtime-component-inspection:
-    pdf_title: Real time car component inspection (page 2); Manufacturing, real time component inspection (page 9)
+    pdf_title: Real time car component inspection; Manufacturing, real time component inspection
     pages: 2, 9, 10
     overview:
       One-line description: Checks every component image from the line camera in real time and flags the parts that need attention.
@@ -486,6 +494,7 @@ cases:
         - n: 1
           text: Quality labels sample images of good and defective parts
           col: 1
+          arrow: down
         - n: 6
           text: The operator checks each flagged part on the line
           col: 4
@@ -501,6 +510,7 @@ cases:
         - n: 4
           text: Each image is checked for defects in real time
           col: 3
+          arrow: down
       - key: AUTOMATION
         sub: Captures, marks, records
         steps:

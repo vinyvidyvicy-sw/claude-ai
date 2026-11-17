@@ -443,10 +443,10 @@ def test_use_case_pages_show_pdf_text_as_is_and_unknowns_say_so(app):
                  "Banking, the document examination flow", "Every decision, override and source is written to the process log",
                  "Dataiku and Amazon Bedrock, hybrid"):
         assert text in page, text
-    assert "Halaman 3:" in page and "Halaman 4:" in page
+    assert "Halaman" not in page and "hal." not in page and "page 2" not in page   # page references are not shown in the UI
     for uid in ("joint-planning-session", "go-to-market", "document-procurement"):
         p = c.get(f"/inovasi/metrodata-ai-use-case/{uid}").text
-        assert "Dari dokumen" not in p and "Halaman 2" not in p
+        assert "Dari dokumen" not in p and "Halaman" not in p
 
 
 def test_every_source_text_line_is_present_in_the_yaml_and_matches_the_catalog(app):
@@ -471,6 +471,7 @@ def test_slide_layouts_follow_the_pdf(app):
     # flow: stage columns and the three lanes with numbered steps placed in columns
     assert "01</span> Receive" in page and 'aria-label="PEOPLE"' in page and 'aria-label="AI"' in page and 'aria-label="AUTOMATION"' in page
     assert 'class="step col-5"' in page and page.count('class="stepnum"') == 11
+    assert page.count("lane-icon") == 3 and "arr-down" in page      # lane icons and gold arrows like the PDF
     # the list page uses the PDF's row layout with a Level pill
     lst = c.get("/inovasi/metrodata-ai-use-case").text
     assert 'class="uc-row"' in lst and lst.count('class="pill"') == 4
@@ -487,3 +488,14 @@ def test_flow_steps_stay_inside_their_stage_columns(app):
                 for lane in b["lanes"]:                                                      # one step per lane column
                     cols = [s["col"] for s in lane["steps"]]
                     assert len(cols) == len(set(cols))
+
+
+def test_card_icons_match_the_pdf_and_no_page_mentions_on_the_list(app):
+    c = client_for(app)
+    login(c, "bob", "staple battery horse")
+    lst = c.get("/inovasi/metrodata-ai-use-case").text
+    assert "hal." not in lst and "Halaman" not in lst
+    for uid, icon in (("banking-trade-finance-document-examination", "file"), ("banking-customer-analytics-credit-scoring", "people"),
+                      ("manufacturing-predictive-maintenance", "tools"), ("manufacturing-realtime-component-inspection", "search")):
+        uc = next(u for i in app.state.catalog.innovation.values() for u in i.use_cases if u.id == uid)
+        assert uc.icon == icon

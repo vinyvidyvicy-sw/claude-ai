@@ -88,19 +88,19 @@ innovation:
       - id: banking-trade-finance-document-examination
         title: Trade Finance Document Examination
         category: Banking
-        icon: doc-check
+        icon: file
       - id: banking-customer-analytics-credit-scoring
         title: Customer Analytics and Credit Scoring
         category: Banking
-        icon: chart
+        icon: people
       - id: manufacturing-predictive-maintenance
         title: Predictive Maintenance for Machines
         category: Manufacturing
-        icon: gear
+        icon: tools
       - id: manufacturing-realtime-component-inspection
         title: Real-time Component Inspection
         category: Manufacturing
-        icon: scan
+        icon: search
   - id: splunk-innovation
     title: Splunk Innovation
     icon: bulb

@@ -10,9 +10,9 @@
 {% if src %}
   <p class="lead">{{ src.overview['One-line description'] }}</p>
   {% if src.mapping_note %}<p class="todo">{{ src.mapping_note }}</p>{% endif %}
-  <p class="notice">Teks di bawah disalin <strong>apa adanya</strong> dari dokumen <em>{{ src.document }}</em> (bahasa Inggris), halaman {{ src.pages }}. Tidak diringkas, tidak diterjemahkan, dan tidak ditambah. Judul di dokumen: {{ src.pdf_title }}.</p>
+  <p class="notice">Teks di bawah disalin <strong>apa adanya</strong> dari dokumen <em>{{ src.document }}</em> (bahasa Inggris). Tidak diringkas, tidak diterjemahkan, dan tidak ditambah. Judul di dokumen: {{ src.pdf_title }}.</p>
   <div class="slide-summary" aria-labelledby="ov-h">
-    <h2 id="ov-h" class="visually-hidden">Ringkasan (halaman 2)</h2>
+    <h2 id="ov-h" class="visually-hidden">Ringkasan</h2>
     <ul class="uc-rows"><li class="uc-row">
       {{ icon(uc.icon, 28) }}
       <div class="uc-main"><p class="uc-title">{{ uc.title }}</p><p>{{ src.overview['One-line description'] }}</p></div>
@@ -26,7 +26,7 @@
   </div>
   {% for b in src.blocks %}
   <section class="slide" aria-labelledby="b{{ loop.index }}-h">
-    <h2 id="b{{ loop.index }}-h" class="slide-title">Halaman {{ b.page }}: {{ b.title }}</h2>
+    <h2 id="b{{ loop.index }}-h" class="slide-title">{{ b.title }}</h2>
     {% if b.subtitle %}<p class="slide-sub"><em>{{ b.subtitle }}</em></p>{% endif %}
     {% if b.kind == 'blueprint' %}{{ blueprint(b) }}{% else %}{{ flow(b) }}{% endif %}
   </section>

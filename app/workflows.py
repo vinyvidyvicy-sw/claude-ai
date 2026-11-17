@@ -19,7 +19,7 @@ import yaml
 from .inventory import Inventory
 from .redact import is_secret_name
 
-ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi", "sparkles", "bulb", "meeting", "rocket", "document", "doc-check", "chart", "gear", "scan"}
+ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi", "sparkles", "bulb", "meeting", "rocket", "document", "doc-check", "chart", "gear", "scan", "file", "people", "tools", "search", "person-check", "brain", "gears"}
 PARAM_TYPES = {"string", "int", "bool", "enum", "ip", "cidr", "hostname", "device"}
 RISKS = ("low", "medium", "high")
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,40}$")
@@ -518,6 +518,8 @@ def load_sources(path: Path, catalog: WorkflowCatalog) -> dict[str, dict]:
                 cols = len(b.get("stages") or [])
                 for lane in b.get("lanes") or []:
                     for st in lane.get("steps") or []:
+                        if st.get("arrow") not in (None, "up", "down"):
+                            problems.append(f"{loc}: step {st.get('n')} arrow must be up or down")
                         if not (1 <= int(st.get("col", 0)) <= cols):
                             problems.append(f"{loc}: step {st.get('n')} has a column outside the stages")
                 if not cols or not b.get("lanes"):

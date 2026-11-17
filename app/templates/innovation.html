@@ -18,7 +18,7 @@
              {% if c.launch %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ c.uc.title }}{% if c.launch %}<span class="visually-hidden"> (dibuka di tab baru)</span>{% endif %}</a></h2>
       {% if c.src %}<p>{{ c.src.overview['One-line description'] }}</p>{% elif c.uc.summary %}<p>{{ c.uc.summary }}</p>{% endif %}
       {% if c.uc.category or c.src or c.uc.assumption %}<p class="badges">{% if c.uc.category %}<span class="badge badge-category">{{ c.uc.category }}</span>{% endif %}{% if c.src %}<span class="badge badge-source">Dari dokumen</span>{% endif %}{% if c.uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>{% endif %}
-      {% if c.src %}<p class="meta"><a class="more uc-more" href="/inovasi/{{ item.id }}/{{ c.uc.id }}">Lihat penjelasan lengkap dari dokumen (hal. {{ c.src.pages }})</a></p>{% endif %}
+      {% if c.src %}<p class="meta"><a class="more uc-more" href="/inovasi/{{ item.id }}/{{ c.uc.id }}">Lihat penjelasan lengkap dari dokumen</a></p>{% endif %}
       <p class="meta">{% if c.launch %}Dibuka di tab baru{% else %}Alamat dasbor: belum disiapkan (TODO){% endif %}</p>
     </div>
     {% if c.src %}
