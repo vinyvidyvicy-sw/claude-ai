@@ -7,10 +7,17 @@
 <ul class="tiles" aria-label="Platforms">
   {% for t in tiles %}
   <li class="tile">
+    {% if t.platform.launcher %}
+    <h2><a class="tile-link" href="{{ '/launch/' ~ t.platform.id if t.launch else '/p/' ~ t.platform.id }}"
+           {% if t.launch %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ t.platform.name }}{% if t.launch %}<span class="visually-hidden"> (opens in a new tab)</span>{% endif %}</a></h2>
+    <p>{{ t.platform.summary }}</p>
+    <p class="meta">{% if t.launch %}Opens in a new tab{% else %}Not set up yet (TODO){% endif %}</p>
+    {% else %}
     <h2><a class="tile-link" href="/p/{{ t.platform.id }}">{{ t.platform.name }}</a></h2>
     <p>{{ t.platform.summary }}</p>
     <p class="meta">{{ t.workflow_count }} workflow{{ '' if t.workflow_count == 1 else 's' }} ·
        {{ t.device_count }} device{{ '' if t.device_count == 1 else 's' }}</p>
+    {% endif %}
   </li>
   {% endfor %}
 </ul>

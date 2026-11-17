@@ -2,7 +2,7 @@
 
 ## A. Required inputs (blocking real device integration)
 1. **Software/API versions** for ISE, Catalyst Center, APIC, NX-OS, IOS-XE, Splunk ES, ESXi/vSphere, Ekahau (which product: AI Pro, Cloud or other). Interface choices below are *candidates to verify*, not confirmed.
-2. **Workflow list and parameters per platform.** All 8 shipped workflows are ASSUMPTION samples.
+2. **Workflow list and parameters per platform.** All 7 shipped workflows are ASSUMPTION samples (Ekahau Design is a launcher tile, not a workflow).
 3. **Which automation backend** performs the changes (e.g. an automation/orchestration platform, CI system or ITSM tool), its API, authentication and job/status/log format. The portal is a front end only; this is the main blocker.
 4. **Dispatch definitions**: every sample workflow has `dispatch: {backend: TODO, job: TODO}` (no job names, endpoints or payloads were invented). What variables does each backend job expect?
 5. **Backend integration class**: not written (two methods: `submit`, `poll`). Needs service authentication, TLS/CA handling, timeouts, error mapping, and use of the run id as an idempotency key.
@@ -14,7 +14,7 @@
 
 ## B. Questions on scope
 11. "VMware ESXi management server": standalone ESXi hosts, or vCenter?
-11b. Ekahau Design: which product and version, what the request must contain (floor plans, requirements), and who fulfils it. The sample "Request a Wi-Fi design" workflow is an ASSUMPTION.
+11b. Ekahau Design (launcher tile): the https address of the Ekahau environment on VMware (`launchers.ekahau.url`), the Ekahau product/version, and how users reach it (web, remote-desktop gateway, other). Should a launch require a specific role? Single sign-on into Ekahau is not provided.
 12. Which platforms' workflows are read-only vs write? Which need a **second approver** (e.g. disabling a Splunk correlation search, ESXi maintenance mode)?
 13. Should engineers see all runs (current ASSUMPTION) or only their own?
 14. Is the optional **Viewer** role wanted? (Implemented; trivial to remove.)

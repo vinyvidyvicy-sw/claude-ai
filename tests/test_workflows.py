@@ -19,9 +19,10 @@ def catalog():
 def test_every_platform_has_a_sample_workflow():
     c = catalog()
     assert set(c.platforms) == PLATFORMS
-    for p in PLATFORMS:
+    for p in PLATFORMS - {"ekahau"}:
         assert c.for_platform(p), p
         assert all(w.assumption for w in c.for_platform(p))
+    assert c.platforms["ekahau"].launcher and not c.for_platform("ekahau")
 
 
 def test_param_validation():
@@ -258,14 +259,31 @@ def test_audit_never_contains_secrets(app, tmp_path):
     assert "correct horse battery" not in open(app.state.settings.db_path, "rb").read().decode("latin1")
 
 
-def test_ekahau_request_flow_without_device(app):
+def test_ekahau_launcher_tile(app):
     c = client_for(app)
     login(c, "bob", "staple battery horse")
-    page = "/p/ekahau/ekahau-request-wifi-design"
-    data = {"site_name": "HQ Jakarta", "floors": "3", "coverage_goal": "voice", "band": "tri", "csrf_token": session_csrf(c, page)}
-    r = c.post(page + "/preview", data=data)
-    assert r.status_code == 303
-    assert "HQ Jakarta" in c.get(r.headers["location"]).text
+    # not configured: tile leads to a TODO page, launch does not leave the portal
+    assert c.get("/launch/ekahau").headers["location"] == "/p/ekahau"
+    assert "not configured" in c.get("/p/ekahau").text
+    # configured: tile opens the launcher in a new tab and the launch is audited
+    app.state.inventory._launchers["ekahau"] = "https://ekahau.example.invalid/design"
+    html = c.get("/").text
+    assert 'href="/launch/ekahau"' in html and 'target="_blank"' in html and "noopener" in html
+    r = c.get("/launch/ekahau")
+    assert r.status_code == 303 and r.headers["location"] == "https://ekahau.example.invalid/design"
+    with app.state.db.conn() as db:
+        row = db.execute("SELECT actor, target, result FROM audit_log WHERE action='platform.launch'").fetchone()
+    assert tuple(row) == ("bob", "ekahau", "success")
+    assert c.get("/launch/ise").status_code == 404  # only launcher platforms
+
+
+def test_launcher_url_must_be_https(tmp_path):
+    from app import inventory
+    p = tmp_path / "inv.yaml"
+    p.write_text("devices: []\nlaunchers:\n  ekahau:\n    url: http://insecure.example\n")
+    import pytest
+    with pytest.raises(inventory.InventoryError):
+        inventory.load(p)
 
 
 def test_dashboard_has_one_tile_per_platform(app):

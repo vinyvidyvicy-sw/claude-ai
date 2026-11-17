@@ -25,8 +25,13 @@ class Device:
 
 
 class Inventory:
-    def __init__(self, devices: list[Device]):
+    def __init__(self, devices: list[Device], launchers: dict[str, str] | None = None):
         self._by_name = {d.name: d for d in devices}
+        self._launchers = dict(launchers or {})
+
+    def launch_url(self, platform: str) -> str | None:
+        """https URL for a launcher tile (e.g. Ekahau Design), or None if not configured."""
+        return self._launchers.get(platform)
 
     def get(self, name: str) -> Device | None:
         return self._by_name.get(name)
@@ -68,4 +73,13 @@ def load(path: Path) -> Inventory:
         devices.append(Device(name, platform, address, str(console) if console else None))
     if errors:
         raise InventoryError("; ".join(errors))
-    return Inventory(devices)
+    launchers: dict[str, str] = {}
+    for plat, item in (data.get("launchers") or {}).items():
+        url = str((item or {}).get("url", "")) if isinstance(item, dict) else ""
+        if not url.startswith("https://"):
+            errors.append(f"launchers.{plat}: url must start with https://")
+        else:
+            launchers[str(plat)] = url
+    if errors:
+        raise InventoryError("; ".join(errors))
+    return Inventory(devices, launchers)

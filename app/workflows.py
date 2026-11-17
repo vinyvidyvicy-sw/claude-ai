@@ -102,6 +102,7 @@ class Platform:
     interface_note: str  # note shown on the platform page (what the backend will talk to; unconfirmed)
     version_note: str
     console_note: str = ""  # optional hint for the "open console" links
+    launcher: bool = False  # tile opens an external tool (URL from inventory.yaml `launchers:`) instead of workflows
 
 
 @dataclass
@@ -135,6 +136,7 @@ def load(path: Path) -> WorkflowCatalog:
             interface_note=str(p.get("interface_note", "TODO: confirm interface")),
             version_note=str(p.get("version_note", "TODO: confirm software/API version")),
             console_note=str(p.get("console_note", "")),
+            launcher=bool(p.get("launcher", False)),
         )
 
     for i, w in enumerate(raw.get("workflows") or []):

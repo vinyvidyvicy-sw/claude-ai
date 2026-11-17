@@ -3,7 +3,7 @@
 Internal web portal: an engineer picks a predefined workflow for a platform, fills in a validated form,
 reviews a **dry-run preview**, **explicitly confirms**, and watches the run and its log.
 Platforms: Cisco ISE, Cisco SDA (Catalyst Center), Cisco ACI (APIC), NX-OS, Catalyst IOS-XE,
-Splunk Enterprise Security, VMware ESXi, Ekahau Design (wireless site survey/design requests).
+Splunk Enterprise Security, VMware ESXi, Ekahau Design (a launcher tile that opens the Ekahau environment hosted on VMware).
 
 > **This portal is a front end, not a configuration engine.** It collects and validates a request, shows a
 > preview, records the engineer's explicit approval, and hands the request to a separate **automation backend**
@@ -22,7 +22,7 @@ Engineer ──> Portal (form, validation, preview, approval, audit) ──> Aut
                          └───────── status + log mirrored back ─────────────┘
 ```
 
-The portal also links each platform's devices to their own native consoles (optional `console_url`).
+The portal also links each platform's devices to their own native consoles (optional `console_url`), and the **Ekahau Design** tile is a launcher: one click opens the Ekahau environment (hosted on VMware) in a new tab. Set its address in `config/inventory.yaml` under `launchers: {ekahau: {url: https://...}}` (https only). No credentials are passed and each launch is audited as `platform.launch`.
 
 ## 1. Recommended stack and structure
 

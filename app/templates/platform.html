@@ -6,6 +6,14 @@
 <p class="lead">{{ platform.summary }}</p>
 <p class="todo"><strong>TODO:</strong> {{ platform.version_note }} {{ platform.interface_note }}</p>
 
+{% if platform.launcher %}
+<h2>Open {{ platform.name }}</h2>
+{% if launch_url %}
+<p><a class="btn btn-primary" href="/launch/{{ platform.id }}" target="_blank" rel="noopener noreferrer">Open {{ platform.name }}<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+{% else %}
+<p class="todo"><strong>TODO:</strong> the address for {{ platform.name }} is not configured. An administrator adds it to <code>config/inventory.yaml</code> under <code>launchers:</code> (see <code>config/inventory.example.yaml</code>) and restarts the portal.</p>
+{% endif %}
+{% else %}
 <h2>Workflows</h2>
 {% if workflows %}
 <ul class="cards">
@@ -22,6 +30,8 @@
 </ul>
 {% else %}<p>No workflows are defined for this platform yet. Add one in <code>config/workflows.yaml</code>.</p>{% endif %}
 
+{% endif %}
+{% if not platform.launcher %}
 <h2>Devices and consoles</h2>
 {% if platform.console_note %}<p class="help">{{ platform.console_note }}</p>{% endif %}
 {% if devices %}
@@ -36,4 +46,5 @@
   </tbody>
 </table>
 {% else %}<p>No devices in the inventory for this platform. See <code>config/inventory.example.yaml</code>.</p>{% endif %}
+{% endif %}
 {% endblock %}

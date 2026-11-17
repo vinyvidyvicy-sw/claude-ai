@@ -12,3 +12,9 @@ devices:
   - {name: cat-lab-1,    platform: catalyst, address: 192.0.2.14}
   - {name: splunk-lab-1, platform: splunk,   address: 192.0.2.15}
   - {name: esxi-lab-1,   platform: esxi,     address: 192.0.2.16}
+
+# Launcher tiles open an external tool in a new tab (no credentials are passed; the tool's own sign-in applies).
+# Set the https address of the Ekahau Design environment hosted on VMware (TODO: not provided yet):
+# launchers:
+#   ekahau:
+#     url: https://<address-of-ekahau-design>
