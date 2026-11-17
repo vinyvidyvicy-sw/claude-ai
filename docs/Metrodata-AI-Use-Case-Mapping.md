@@ -2,107 +2,13 @@
 
 Sumber: `Metrodata_AI_Use_Case.pdf` (13 halaman). Halaman 1 hanya judul "Detail Use Cases" dan halaman 13 hanya "Thank You!"; keduanya tidak memuat penjelasan use case.
 
-Aturan: teks di bawah disalin **apa adanya** dari dokumen (bahasa Inggris), tidak diringkas, tidak diterjemahkan, tidak ditambah. Bila dokumen tidak membahas sesuatu, tertulis "Not in the document".
+Aturan: teks di bawah disalin **apa adanya** dari dokumen (bahasa Inggris), tidak diringkas, tidak diterjemahkan, tidak ditambah.
 
-Catatan pemetaan:
-- **ASUMSI:** kartu portal "Document Procurement" dipetakan ke "Agentic procurement document processing" di dokumen, karena itu satu-satunya use case pengadaan di dokumen.
-- Judul kartu "Real-time Component Inspection" dipetakan ke "Real time car component inspection" (halaman 2) / "Manufacturing, real time component inspection" (halaman 9). Kata "car" hanya muncul di halaman 2.
-- "Joint Planning Session" dan "Go To Market" tidak dibahas di dokumen.
+Dikecualikan atas permintaan:
+- "Agentic procurement document processing" (halaman 2, 11, 12) tidak dimasukkan ke kartu mana pun. Kartu "Document Procurement" tidak berisi teks dari dokumen.
+- Kartu "Joint Planning Session" dan "Go To Market" dilewati (tidak dipetakan).
 
----
-
-**Metrodata Use Case Card:** Joint Planning Session
-
-**Document Explanations (As-Is):**
-- Not in the document. The PDF has no section, statement or capability for this card.
-
-**Location in PDF:** none
-
----
-
-**Metrodata Use Case Card:** Go To Market
-
-**Document Explanations (As-Is):**
-- Not in the document. The PDF has no section, statement or capability for this card.
-
-**Location in PDF:** none
-
----
-
-**Metrodata Use Case Card:** Document Procurement
-
-**Document Explanations (As-Is):**
-
-- *Title in the document:* Agentic procurement document processing (page 2); BFSI and manufacturing, agentic procurement documents (page 11)
-- *Page 2 (overview table):*
-  - One-line description: Extracts the text and fields from every procurement document, and an AI agent flags what needs attention for the team.
-  - Industry: BFSI and manufacturing, 2026
-  - Runs on: Amazon Textract, Amazon Bedrock, Step Functions, cloud
-  - Timeline: 3 months, one use case
-  - Level: Level 2
-- *Page 11: BFSI and manufacturing, agentic procurement documents*
-  - Subtitle: Amazon Textract, Amazon Bedrock and AWS Step Functions in the cloud, a 3 month project from May 2026, in the seven blueprint sections
-  - 1. Problem statement and owner
-    - Owner: Procurement team, with finance
-    - Procurement documents read and keyed in by hand
-    - Fields checked one document at a time
-    - Issues found late, after the document moves on
-    - Checks that differ between whoever reads them
-  - 2. High level solution
-    - An AI agent reads and checks every document
-    - Textract pulls the text and fields from each page, an agent on Amazon Bedrock reviews the content and flags issues, and Step Functions runs the steps in order.
-    - WHAT IT DOES
-    - Extracts text and fields from every page
-    - Reviews the content and flags issues
-    - Hands the result to the procurement team
-  - 3. Level of trust and human gates
-    - Level 2 - Prepares, you decide
-    - Procurement follows up every flagged item
-    - People approve every order and payment
-    - Engineers review every agent change
-  - 4. Data and system readiness
-    - Sample procurement documents per type
-    - The fields and checks for each type
-    - An AWS account with Amazon Bedrock access
-    - One place where the documents arrive
-  - High level solution, architecture
-    - Procurement documents arrive: Scans and PDFs; Each document type
-    - Amazon Textract reads every page: Text; Fields and tables
-    - AI agent on Amazon Bedrock checks: Review the content; Flag the issues
-    - AWS Step Functions runs the steps: In order; One pipeline
-    - Procurement team follow up: Flagged items; Result record
-  - 5. Expected business impact
-    - Documents read without manual keying
-    - Issues flagged before the document moves on
-    - Every document checked the same way
-  - 6. Effort, duration and team
-    - 3 months
-    - one use case, from May 2026
-  - 7. Sequence and roadmap
-    - Phase 1, sample documents and checks agreed
-    - Phase 2, extraction and agent built and tested
-    - Phase 3, results to the procurement team
-- *Page 12: BFSI and manufacturing, the procurement flow*
-  - Subtitle: The high level solution as lanes, from a new procurement document to the team's follow up
-  - Stages
-    - 01 Arrive
-    - 02 Read
-    - 03 Check
-    - 04 Hand over
-    - 05 Follow up
-  - PEOPLE (Procurement and finance)
-    - (6) The procurement team reviews each flagged item
-    - (7) The team follows up each issue with the supplier
-  - AI (Reads, checks, flags)
-    - (2) Text and fields are extracted from every page
-    - (4) The AI agent reviews the content and flags what needs attention
-  - AUTOMATION (Receives, runs, records)
-    - (1) A new procurement document arrives and starts the run
-    - (3) The extracted fields are stored with the document
-    - (5) The result and the flags go to the procurement team
-    - (8) Every run and its result is written to the log
-
-**Location in PDF:** pages 2, 11, 12 (page 2 overview; the other pages are the seven blueprint sections and the flow)
+Catatan: kartu "Real-time Component Inspection" dipetakan ke "Real time car component inspection" (halaman 2) / "Manufacturing, real time component inspection" (halaman 9). Kata "car" hanya muncul di halaman 2.
 
 ---
 

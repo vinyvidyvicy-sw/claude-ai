@@ -14,7 +14,7 @@
 
 ## B. Questions on scope
 11. "VMware ESXi management server": standalone ESXi hosts, or vCenter?
-11c. Metrodata AI Use Case: card text now comes from the PDF "Metrodata AI Use Case", as-is. Please confirm that "Document Procurement" = the PDF's "Agentic procurement document processing". Joint Planning Session and Go To Market are not in the PDF (text needed from the owner). None of the cards except those two has an https address yet.
+11c. Metrodata AI Use Case: four cards carry text from the PDF as-is. Joint Planning Session, Go To Market and Document Procurement have no description (text and https addresses needed from their owners). The PDF's "Agentic procurement document processing" was left out on request.
 11d. Menu Inovasi: what should "Metrodata AI Use Case" and "Splunk Innovation" show, and what are their https addresses (`launchers.metrodata-ai-use-case.url`, `launchers.splunk-innovation.url`)? Should more items be added? Should the rest of the documentation (README, PDF) also be translated?
 11b. Ekahau Design (launcher tile): the https address of the Ekahau environment on VMware (`launchers.ekahau.url`), the Ekahau product/version, and how users reach it (web, remote-desktop gateway, other). Should a launch require a specific role? Single sign-on into Ekahau is not provided.
 12. Which platforms' workflows are read-only vs write? Which need a **second approver** (e.g. disabling a Splunk correlation search, ESXi maintenance mode)?

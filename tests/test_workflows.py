@@ -337,17 +337,16 @@ def test_innovation_pages_and_launch(app):
     for title in ("Trade Finance Document Examination", "Customer Analytics and Credit Scoring",
                   "Predictive Maintenance for Machines", "Real-time Component Inspection"):
         assert title in page.text
-    assert page.text.count("badge-category") == 5 and "Banking" in page.text and "Manufacturing" in page.text
-    # five cards come from the PDF, two (JPS, GTM) are explicitly marked as not in the document
-    assert page.text.count("Dari dokumen") == 5 and page.text.count("Tidak ada di dokumen") == 2
+    assert page.text.count("badge-category") == 4 and "Banking" in page.text and "Manufacturing" in page.text
+    # four cards carry text from the PDF; JPS, GTM and Document Procurement are left without document text
+    assert page.text.count("badge-source") == 4 and "Tidak ada di dokumen" not in page.text
     assert "Reads every page of a trade document set, checks it against the credit terms and the bank&#39;s rules, and explains each finding." in page.text
-    assert page.text.count("Tidak ada dalam dokumen PDF Metrodata AI Use Case.") == 2
+    assert "Textract" not in page.text and "Agentic" not in page.text   # procurement text was removed on request
     assert page.text.count("Alamat dasbor: belum disiapkan (TODO)") == 5 and page.text.count("Dibuka di tab baru") == 2
     assert c.get("/launch/metrodata-ai-use-case").headers["location"] == "/inovasi/metrodata-ai-use-case"
     # each card has its own page; not configured -> TODO, launch falls back to that page
     detail = c.get("/inovasi/metrodata-ai-use-case/document-procurement").text
-    assert "belum dikonfigurasi" in detail and "Pemetaan ini adalah ASUMSI" in detail
-    assert "Textract pulls the text and fields from each page" in detail
+    assert "belum dikonfigurasi" in detail and "Textract" not in detail and "ASUMSI" not in detail
     assert c.get("/launch/document-procurement").headers["location"] == "/inovasi/metrodata-ai-use-case/document-procurement"
     app.state.inventory._launchers["document-procurement"] = "https://docs.example.invalid/"
     assert 'href="/launch/document-procurement"' in c.get("/inovasi/metrodata-ai-use-case").text
@@ -445,14 +444,14 @@ def test_use_case_pages_show_pdf_text_as_is_and_unknowns_say_so(app):
                  "Dataiku and Amazon Bedrock, hybrid"):
         assert text in page, text
     assert "Halaman 3:" in page and "Halaman 4:" in page
-    for uid in ("joint-planning-session", "go-to-market"):
+    for uid in ("joint-planning-session", "go-to-market", "document-procurement"):
         p = c.get(f"/inovasi/metrodata-ai-use-case/{uid}").text
-        assert "Tidak ada dalam dokumen PDF Metrodata AI Use Case." in p and "Dari dokumen" not in p
+        assert "Dari dokumen" not in p and "Halaman 2" not in p
 
 
 def test_every_source_text_line_is_present_in_the_yaml_and_matches_the_catalog(app):
     st = app.state
     ids = {u.id for i in st.catalog.innovation.values() for u in i.use_cases}
-    assert set(st.sources) <= ids and set(st.sources) == ids - {"joint-planning-session", "go-to-market"}
+    assert set(st.sources) <= ids and set(st.sources) == ids - {"joint-planning-session", "go-to-market", "document-procurement"}
     for cid, case in st.sources.items():
         assert case["pages"] and case["blocks"] and case["overview"]["One-line description"]

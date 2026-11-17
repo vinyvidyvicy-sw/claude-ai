@@ -4,7 +4,7 @@
 {% block content %}
 <nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dashboard</a> / Inovasi / <a href="/inovasi/{{ item.id }}">{{ item.title }}</a> / <span aria-current="page">{{ uc.title }}</span></nav>
 <h1 class="with-icon">{{ icon(uc.icon, 34) }}<span>{{ uc.title }}</span></h1>
-<p class="badges">{% if uc.category %}<span class="badge badge-category">{{ uc.category }}</span>{% endif %}{% if src %}<span class="badge badge-source">Dari dokumen</span>{% else %}<span class="badge badge-nosource">Tidak ada di dokumen</span>{% endif %}{% if uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>
+{% if uc.category or src or uc.assumption %}<p class="badges">{% if uc.category %}<span class="badge badge-category">{{ uc.category }}</span>{% endif %}{% if src %}<span class="badge badge-source">Dari dokumen</span>{% endif %}{% if uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>{% endif %}
 
 {% if src %}
   <p class="lead">{{ src.overview['One-line description'] }}</p>
@@ -28,8 +28,8 @@
     </div>
   </section>
   {% endfor %}
-{% else %}
-  <p class="lead">Tidak ada dalam dokumen PDF Metrodata AI Use Case.</p>
+{% elif uc.summary %}
+  <p class="lead">{{ uc.summary }}</p>
 {% endif %}
 
 {% if launch_url %}

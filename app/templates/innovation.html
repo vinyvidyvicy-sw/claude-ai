@@ -16,7 +16,7 @@
       <h2><a class="tile-link" href="{{ '/launch/' ~ c.uc.id if c.launch else '/inovasi/' ~ item.id ~ '/' ~ c.uc.id }}"
              {% if c.launch %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ c.uc.title }}{% if c.launch %}<span class="visually-hidden"> (dibuka di tab baru)</span>{% endif %}</a></h2>
     </div>
-    <p>{{ c.src.overview['One-line description'] if c.src else c.uc.summary }}</p>
+    {% if c.src %}<p>{{ c.src.overview['One-line description'] }}</p>{% elif c.uc.summary %}<p>{{ c.uc.summary }}</p>{% endif %}
     {% if c.src %}
     <dl class="mini">
       <div><dt>Industry</dt><dd>{{ c.src.overview['Industry'] }}</dd></div>
@@ -24,7 +24,7 @@
       <div><dt>Timeline</dt><dd>{{ c.src.overview['Timeline'] }}</dd></div>
     </dl>
     {% endif %}
-    <p class="badges">{% if c.uc.category %}<span class="badge badge-category">{{ c.uc.category }}</span>{% endif %}{% if c.src %}<span class="badge badge-source">Dari dokumen</span>{% else %}<span class="badge badge-nosource">Tidak ada di dokumen</span>{% endif %}{% if c.uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>
+    {% if c.uc.category or c.src or c.uc.assumption %}<p class="badges">{% if c.uc.category %}<span class="badge badge-category">{{ c.uc.category }}</span>{% endif %}{% if c.src %}<span class="badge badge-source">Dari dokumen</span>{% endif %}{% if c.uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>{% endif %}
     {% if c.src %}<p class="meta"><a class="more" href="/inovasi/{{ item.id }}/{{ c.uc.id }}">Lihat penjelasan lengkap dari dokumen (hal. {{ c.src.pages }})</a></p>{% endif %}
     <p class="meta">{% if c.launch %}Dibuka di tab baru{% else %}Alamat dasbor: belum disiapkan (TODO){% endif %}</p>
   </li>
