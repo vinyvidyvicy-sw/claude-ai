@@ -1,0 +1,80 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Panduan Menghubungkan Perangkat ke Portal</title><style>
+@page { size: A4; margin: 18mm 16mm; }
+body { font-family: Helvetica, Arial, sans-serif; font-size: 10.3pt; line-height: 1.45; color: #1c2733; }
+h1 { font-size: 21pt; margin: 0 0 4pt; color: #0a5aa8; }
+h2 { font-size: 14.5pt; color: #0a5aa8; border-bottom: 2px solid #0a5aa8; padding-bottom: 3pt; margin-top: 20pt; page-break-after: avoid; }
+h3 { font-size: 11.3pt; margin: 13pt 0 4pt; page-break-after: avoid; }
+pre { background: #f3f5f7; border: 1px solid #c9d1d9; border-left: 4px solid #0a5aa8; padding: 6pt 9pt; font-family: Menlo, Consolas, monospace; font-size: 8.6pt; white-space: pre-wrap; word-break: break-word; margin: 5pt 0 8pt; page-break-inside: avoid; }
+code { font-family: Menlo, Consolas, monospace; font-size: 9pt; background: #f3f5f7; padding: 0 2pt; }
+.step { margin: 9pt 0; }
+.n { display: inline-block; background: #0a5aa8; color: #fff; border-radius: 50%; width: 16pt; height: 16pt; text-align: center; line-height: 16pt; font-weight: bold; margin-right: 6pt; font-size: 9pt; }
+.note { background: #fff4d6; border-left: 4px solid #5c4300; padding: 5pt 9pt; margin: 7pt 0; page-break-inside: avoid; }
+.info { background: #e8f1fb; border-left: 4px solid #0a5aa8; padding: 5pt 9pt; margin: 7pt 0; page-break-inside: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 9.3pt; }
+th, td { border: 1px solid #c9d1d9; padding: 3.5pt 6pt; text-align: left; vertical-align: top; }
+th { background: #f3f5f7; }
+tr { page-break-inside: avoid; }
+.sub { color: #4b5a69; margin: 0 0 12pt; }
+.pb { page-break-before: always; }
+.diagram { font-family: Menlo, Consolas, monospace; font-size: 8.6pt; background: #f3f5f7; border: 1px solid #c9d1d9; padding: 8pt; white-space: pre; page-break-inside: avoid; }
+</style></head><body><h1>Panduan Menghubungkan Perangkat ke Portal</h1><p class="sub">Cisco &amp; Splunk Lab Portal: klik dari dashboard langsung ke konsol tiap perangkat</p><div class="info"><b>Tujuan.</b> Setelah layanan tiap perangkat menyala dan punya IP, user cukup membuka dashboard portal, memilih platform, lalu klik <b>Buka konsol</b> pada perangkat yang diinginkan. Konsol perangkat itu terbuka di tab baru dan konfigurasi dilakukan di sana. Portal ini adalah <b>front end</b>: portal tidak mengonfigurasi perangkat, tidak menyimpan kredensial perangkat, dan tidak menjadi proxy. Panduan ini belum dicoba pada perangkat nyata; fiturnya sudah diuji otomatis (39 tes) dengan alamat contoh.</div><h2>1. Cara kerjanya</h2><div class="diagram">Dashboard portal ── tile platform ──&gt; halaman platform ── "Buka konsol" ──&gt;
+   /console/&lt;nama-perangkat&gt;  (portal mencatat siapa, perangkat mana, kapan)
+          │  pengalihan (HTTP 303)
+          ▼
+   Browser user langsung ke https://&lt;IP-atau-nama-perangkat&gt;  (konsol bawaan perangkat)</div><ul><li>Alamat konsol disimpan di <code>config/inventory.yaml</code> (file lokal, tidak ikut ke Git), bukan di kode.</li><li>Portal hanya mengalihkan browser. Jadi <b>laptop user harus bisa menjangkau IP perangkat</b>, dan user login memakai akun bawaan perangkat.</li><li>Setiap klik dicatat di Log audit sebagai <code>device.console_open</code>.</li></ul><h2>2. Prasyarat</h2><table><tr><th>Prasyarat</th><th>Cara memeriksa</th><th>Status</th></tr><tr><td>Layanan web tiap perangkat menyala dan punya IP</td><td>Buka konsolnya dari browser laptop Anda sekarang</td><td>TODO: isi daftar IP</td></tr><tr><td>Laptop user punya rute dan izin firewall ke IP/port konsol</td><td>Mac: <code>nc -vz &lt;IP&gt; 443</code>. Windows: <code>Test-NetConnection &lt;IP&gt; -Port 443</code></td><td>TODO</td></tr><tr><td>Alamat konsol yang benar (skema, port, path)</td><td>Salin dari bilah alamat browser saat Anda berhasil membuka konsol itu. Portal tidak menebak path</td><td>TODO</td></tr><tr><td>Akun login di tiap perangkat untuk para user</td><td>Dikelola di perangkat masing-masing (atau ISE/TACACS+/RADIUS bila dipakai)</td><td>TODO: model autentikasi perangkat</td></tr><tr><td>Portal sudah berjalan</td><td>Lihat Panduan Deploy ke ESXi, atau Panduan Setup Lokal</td><td>Sudah ada panduannya</td></tr></table><h2>3. Langkah-langkah</h2><div class="step"><span class="n">1</span><b>Susun daftar perangkat.</b><p>Isi tabel ini (template kosong ada di bagian 9). Kolom <b>platform</b> harus salah satu ID di bawah:</p><table><tr><th>Platform</th><th>ID di inventory.yaml</th></tr><tr><td>Cisco ISE</td><td><code>ise</code></td></tr><tr><td>Cisco SDA (Catalyst Center)</td><td><code>sda</code></td></tr><tr><td>Cisco ACI (APIC)</td><td><code>aci</code></td></tr><tr><td>Cisco NX-OS switches</td><td><code>nxos</code></td></tr><tr><td>Cisco Catalyst switches (IOS-XE)</td><td><code>catalyst</code></td></tr><tr><td>Splunk Enterprise Security</td><td><code>splunk</code></td></tr><tr><td>VMware ESXi management</td><td><code>esxi</code></td></tr></table><p>Nama perangkat: huruf/angka, boleh <code>.</code> <code>_</code> <code>-</code>, maksimal 63 karakter, harus unik.</p></div><div class="step"><span class="n">2</span><b>Buka file inventaris.</b><pre># Di server portal (ESXi/Ubuntu):
+sudo -u portal -H nano /opt/portal/claude-ai/config/inventory.yaml
+
+# Di Mac (uji lokal):        nano ~/claude-ai/config/inventory.yaml
+# Di Windows (uji lokal):    notepad claude-ai\config\inventory.yaml</pre><p>Jika file belum ada, salin dulu dari contoh: <code>cp config/inventory.example.yaml config/inventory.yaml</code> (Windows: <code>copy</code>).</p><div class="note">Bila <code>inventory.yaml</code> tidak ada, portal memakai <code>inventory.example.yaml</code> berisi IP placeholder 192.0.2.x. Pastikan file sungguhan sudah dibuat.</div></div><div class="step"><span class="n">3</span><b>Isi perangkat dan alamat konsolnya.</b><pre>devices:
+  - name: ise-lab-1
+    platform: ise
+    address: 10.10.1.10
+    console_url: &quot;https://10.10.1.10&quot;
+  - name: dnac-lab-1
+    platform: sda
+    address: 10.10.1.11
+    console_url: &quot;https://10.10.1.11&quot;
+  - name: apic-lab-1
+    platform: aci
+    address: 10.10.1.12
+    console_url: &quot;https://10.10.1.12&quot;
+  - name: nxos-lab-1
+    platform: nxos
+    address: 10.10.1.13
+    console_url: &quot;https://10.10.1.13&quot;
+  - name: cat-lab-1
+    platform: catalyst
+    address: 10.10.1.14
+    console_url: &quot;https://10.10.1.14&quot;
+  - name: splunk-lab-1
+    platform: splunk
+    address: 10.10.1.15
+    console_url: &quot;https://10.10.1.15:&lt;port&gt;&quot;
+  - name: esxi-lab-1
+    platform: esxi
+    address: 10.10.1.16
+    console_url: &quot;https://10.10.1.16&quot;</pre><div class="note">Nilai di atas <b>hanya contoh format</b>. Ganti IP, port, dan path dengan alamat yang Anda pakai di browser untuk konsol tiap perangkat. <code>console_url</code> wajib diawali <code>https://</code>; kalau tidak, portal menolak start dan menampilkan pesan kesalahan. Jangan menaruh kata sandi atau token di file ini.</div></div><div class="step"><span class="n">4</span><b>(Opsional) Alamat Ekahau Design dan kartu Inovasi.</b><p>Di file yang sama, bagian <code>launchers:</code>:</p><pre>launchers:
+  ekahau:
+    url: https://&lt;alamat-ekahau-design&gt;
+  document-procurement:
+    url: https://&lt;alamat-dashboard&gt;
+  splunk-innovation:
+    url: https://&lt;alamat-halaman&gt;</pre><p>Go To Market dan Joint Planning Session sudah punya alamat bawaan di <code>config/workflows.yaml</code>; entri di <code>inventory.yaml</code> akan menimpanya bila diisi. Kunci yang tersedia: <code>ekahau</code>, <code>metrodata-ai-use-case</code>, <code>joint-planning-session</code>, <code>go-to-market</code>, <code>document-procurement</code>, <code>splunk-innovation</code>.</p></div><div class="step"><span class="n">5</span><b>Mulai ulang portal.</b><pre># Server:
+sudo systemctl restart portal
+sudo journalctl -u portal -n 20 --no-pager     # tidak ada error
+
+# Mac (hentikan dengan Ctrl+C lalu):
+cd ~/claude-ai &amp;&amp; source .venv/bin/activate
+export PORTAL_COOKIE_SECURE=false
+python -m uvicorn app.main:app_factory --factory --port 8000
+
+# Windows PowerShell:
+cd claude-ai ; .\.venv\Scripts\Activate.ps1
+$env:PORTAL_COOKIE_SECURE = &quot;false&quot;
+python -m uvicorn app.main:app_factory --factory --port 8000</pre></div><div class="step"><span class="n">6</span><b>Uji dari dashboard.</b><ol><li>Masuk ke portal, klik tile platform (mis. <b>Cisco ACI (APIC)</b>).</li><li>Di bagian <b>Perangkat dan konsol</b>, perangkat tampil dengan tautan <b>Buka konsol</b>.</li><li>Klik. Konsol perangkat terbuka di <b>tab baru</b>. Login dengan akun perangkat.</li><li>Kembali ke portal: <b>Log audit</b> (menu admin) menampilkan <code>device.console_open</code> dengan nama Anda dan nama perangkat.</li></ol></div><h2>4. Pemeriksaan jaringan dari laptop user</h2><pre># Mac
+nc -vz 10.10.1.12 443                         # succeeded
+curl -skI https://10.10.1.12 | head -3        # ada respons HTTP (-k: abaikan sertifikat self-signed)
+
+# Windows PowerShell
+Test-NetConnection 10.10.1.12 -Port 443       # TcpTestSucceeded : True
+curl.exe -skI https://10.10.1.12</pre><p>Jika gagal, masalahnya di rute, VLAN manajemen, atau firewall, bukan di portal. Perangkat di VLAN manajemen terpisah memerlukan rute, VPN, atau aturan firewall dari jaringan user.</p><h2>5. Keamanan dan batasan</h2><ul><li><b>Tanpa proxy dan tanpa SSO:</b> portal tidak meneruskan kredensial. User login di konsol perangkat dengan akun perangkat. Single sign-on (mis. lewat ISE atau SAML) adalah keputusan terpisah dan bergantung pada dukungan tiap perangkat (TODO).</li><li><b>Sertifikat self-signed:</b> browser menampilkan peringatan sekali per perangkat. Percayai sertifikat atau pakai sertifikat dari CA internal.</li><li><b>Siapa yang boleh klik:</b> saat ini semua user yang sudah login (Admin, Engineer, Viewer) dapat membuka konsol. Pembatasan per peran belum ada (TODO bila diperlukan). Hak akses sebenarnya tetap ditentukan oleh akun di perangkat.</li><li><b>Audit:</b> portal mencatat klik, bukan apa yang dilakukan user di dalam konsol perangkat. Untuk jejak itu, andalkan log perangkat (mis. TACACS+/AAA accounting).</li><li>Konsol dibuka di tab baru, bukan dibenamkan (iframe), karena perangkat umumnya memblokir pembenaman.</li><li>File <code>inventory.yaml</code> berisi IP internal; jangan di-commit ke Git (sudah diabaikan oleh <code>.gitignore</code>) dan cadangkan di luar VM.</li></ul><h2>6. Masalah umum</h2><table><tr><th>Gejala</th><th>Penyebab dan solusi</th></tr><tr><td>Perangkat tidak muncul di halaman platform</td><td>ID <code>platform</code> salah ketik (harus persis seperti tabel di langkah 1), atau portal belum di-restart, atau <code>inventory.yaml</code> belum ada sehingga yang terbaca file contoh</td></tr><tr><td>Perangkat muncul tapi tertulis "belum diatur" di kolom konsol</td><td><code>console_url</code> belum diisi pada perangkat itu</td></tr><tr><td>Portal tidak mau start, pesan <i>console_url must start with https://</i></td><td>Ubah alamat menjadi diawali <code>https://</code> (juga berlaku untuk <code>launchers:</code>)</td></tr><tr><td>Pesan <i>duplicate name</i> atau <i>invalid name</i> saat start</td><td>Nama perangkat harus unik dan hanya memakai huruf, angka, <code>.</code> <code>_</code> <code>-</code></td></tr><tr><td>Klik <b>Buka konsol</b> membuka halaman "tidak dapat dijangkau"</td><td>Laptop tidak punya rute/izin ke IP perangkat (bagian 4), atau alamat/port/path di <code>console_url</code> berbeda dari yang Anda pakai di browser</td></tr><tr><td>Peringatan sertifikat</td><td>Normal untuk self-signed; pilih lanjutkan atau percayai sertifikat</td></tr><tr><td>Halaman <b>404</b> pada <code>/console/...</code></td><td>Perangkat tidak ada di inventaris atau <code>console_url</code>-nya kosong</td></tr><tr><td>Perubahan file tidak terlihat</td><td>Portal membaca inventaris saat start: restart layanan, lalu hard-refresh browser</td></tr></table><h2 class='pb'>7. Pengembangan berikutnya (opsional)</h2><ul><li>Satu klik dari tile langsung ke konsol untuk platform yang hanya punya satu perangkat (APIC, Catalyst Center, ISE, dan sebagainya).</li><li>Status hidup/mati tiap perangkat (cek koneksi sederhana) di halaman platform.</li><li>Pembatasan tombol konsol per peran, atau per platform.</li><li>Single sign-on ke konsol perangkat, jika didukung dan disetujui (TODO).</li><li>Backend otomasi untuk workflow (belum ada). Portal dapat tetap dipakai sebagai peluncur konsol sampai itu siap.</li></ul><h2>8. Ringkasan satu halaman</h2><ol><li>Pastikan laptop user bisa menjangkau IP dan port konsol tiap perangkat.</li><li>Salin <code>config/inventory.example.yaml</code> menjadi <code>config/inventory.yaml</code>.</li><li>Isi <code>name</code>, <code>platform</code>, <code>address</code>, dan <code>console_url</code> (https) untuk tiap perangkat.</li><li>(Opsional) isi <code>launchers:</code> untuk Ekahau dan kartu Inovasi.</li><li><code>sudo systemctl restart portal</code> (atau jalankan ulang di Mac/Windows).</li><li>Dashboard, tile platform, <b>Buka konsol</b>. Cek Log audit.</li></ol><h2>9. Template daftar perangkat (isi sebelum langkah 3)</h2><table><tr><th>Nama perangkat</th><th>Platform (ID)</th><th>IP / address</th><th>console_url (https)</th><th>Dapat dijangkau dari laptop?</th></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr></table></body></html>

@@ -124,6 +124,8 @@ A step-by-step guide in Indonesian is in `docs/Panduan-Deploy-ESXi.pdf` (source 
 python3 scripts/smoke_test.py https://<host> --username admin --insecure   # --insecure only for a self-signed lab certificate
 ```
 
+A second guide, `docs/Panduan-Hubungkan-Perangkat.pdf`, explains how to register each device's console address (`console_url` in `config/inventory.yaml`) so a click on the dashboard opens that device's own console.
+
 This procedure has not been run on a real ESXi host yet (TODO: ESXi version, VM network, certificate policy).
 
 ## 3. Login flow and user store
