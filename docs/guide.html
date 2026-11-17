@@ -1,0 +1,204 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Network Automation Portal - Local Setup Guide</title>
+<style>
+@page { size: A4; margin: 18mm 16mm; }
+body { font-family: Helvetica, Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1c2733; }
+h1 { font-size: 22pt; margin: 0 0 4pt; color: #0a5aa8; }
+h2 { font-size: 15pt; color: #0a5aa8; border-bottom: 2px solid #0a5aa8; padding-bottom: 3pt; margin-top: 22pt; page-break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 14pt 0 4pt; page-break-after: avoid; }
+pre { background: #f3f5f7; border: 1px solid #c9d1d9; border-left: 4px solid #0a5aa8; padding: 7pt 9pt; font-family: Menlo, Consolas, monospace; font-size: 9pt; white-space: pre-wrap; margin: 5pt 0 8pt; page-break-inside: avoid; }
+code { font-family: Menlo, Consolas, monospace; font-size: 9.5pt; background: #f3f5f7; padding: 0 2pt; }
+.step { margin: 10pt 0; page-break-inside: avoid; }
+.n { display: inline-block; background: #0a5aa8; color: #fff; border-radius: 50%; width: 17pt; height: 17pt; text-align: center; line-height: 17pt; font-weight: bold; margin-right: 6pt; font-size: 9.5pt; }
+.note { background: #fff4d6; border-left: 4px solid #5c4300; padding: 6pt 9pt; margin: 8pt 0; page-break-inside: avoid; }
+.info { background: #e8f1fb; border-left: 4px solid #0a5aa8; padding: 6pt 9pt; margin: 8pt 0; page-break-inside: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 9.5pt; }
+th, td { border: 1px solid #c9d1d9; padding: 4pt 6pt; text-align: left; vertical-align: top; }
+th { background: #f3f5f7; }
+.sub { color: #4b5a69; margin: 0 0 14pt; }
+.pb { page-break-before: always; }
+</style></head><body>
+
+<h1>Network Automation Portal</h1>
+<p class="sub">Local setup guide: MacBook, Windows laptop, and sharing the code with other engineers</p>
+
+<div class="info"><b>What you are running.</b> A web portal for engineers to start predefined configuration workflows (Cisco ISE, SDA, ACI, NX-OS, Catalyst, Splunk ES, ESXi). It opens in your browser at <code>http://localhost:8000</code>. The portal is in <b>dry-run mode</b>: confirmed workflows are simulated and no device is contacted. All sample workflows are ASSUMPTION samples.</div>
+
+<table>
+<tr><th>Item</th><th>Value</th></tr>
+<tr><td>Repository</td><td>https://github.com/vinyvidyvicy-sw/claude-ai</td></tr>
+<tr><td>Branch</td><td><code>ccr-5a472752-cizl40</code></td></tr>
+<tr><td>Python needed</td><td>3.11 or newer</td></tr>
+<tr><td>Address once running</td><td>http://localhost:8000</td></tr>
+</table>
+
+<h2>Part 1. Run on a MacBook</h2>
+
+<div class="step"><span class="n">1</span><b>Open Terminal.</b> Press Cmd+Space, type "Terminal", press Enter.</div>
+
+<div class="step"><span class="n">2</span><b>Check Python.</b>
+<pre>python3 --version</pre>
+If it shows 3.11 or higher, go to step 4. Otherwise install Python (step 3).</div>
+
+<div class="step"><span class="n">3</span><b>Install Python.</b> Easiest: Homebrew.
+<pre>brew --version          # if this fails, install Homebrew from https://brew.sh first
+brew install python
+python3 --version</pre>
+No Homebrew? Download the macOS installer (.pkg) from https://www.python.org/downloads/macos/ and click through it. Then open a new Terminal window.
+<div class="note">On a Mac use <code>python3</code> and <code>pip3</code>. Inside the virtual environment (step 5) plain <code>python</code> and <code>pip</code> also work.</div></div>
+
+<div class="step"><span class="n">4</span><b>Download the code.</b>
+<pre>git clone https://github.com/vinyvidyvicy-sw/claude-ai.git
+cd claude-ai
+git checkout ccr-5a472752-cizl40</pre>
+If macOS offers to install the Command Line Tools (for git), accept, wait, then repeat. If asked to sign in to GitHub, see Part 3.</div>
+
+<div class="step"><span class="n">5</span><b>Create an isolated environment and install.</b>
+<pre>python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt</pre>
+Your prompt now starts with <code>(.venv)</code>.</div>
+
+<div class="step"><span class="n">6</span><b>Allow sign-in over plain http (local testing only).</b>
+<pre>export PORTAL_COOKIE_SECURE=false</pre></div>
+
+<div class="step"><span class="n">7</span><b>Create your admin user.</b>
+<pre>python -m app.cli create-admin admin</pre>
+Type a password of at least 12 characters, then repeat it. Nothing shows while you type.</div>
+
+<div class="step"><span class="n">8</span><b>Start the portal.</b>
+<pre>python -m uvicorn app.main:app_factory --factory --port 8000</pre>
+Leave this window open. Stop with Ctrl+C.</div>
+
+<div class="step"><span class="n">9</span><b>Open the portal.</b> Go to <code>http://localhost:8000</code> and sign in as <code>admin</code>.</div>
+
+<h3>Coming back later (Mac)</h3>
+<pre>cd claude-ai
+source .venv/bin/activate
+export PORTAL_COOKIE_SECURE=false
+python -m uvicorn app.main:app_factory --factory --port 8000</pre>
+
+<h3>Updating to the latest version (Mac)</h3>
+<p>Stop the portal (Ctrl+C), then:</p>
+<pre>cd claude-ai
+git checkout ccr-5a472752-cizl40
+git pull
+source .venv/bin/activate
+pip install -r requirements.txt
+export PORTAL_COOKIE_SECURE=false
+python -m uvicorn app.main:app_factory --factory --port 8000</pre>
+<p>Hard-refresh the browser with Cmd+Shift+R. Your users and audit log are kept in <code>data/portal.db</code>.</p>
+
+<h2 class="pb">Part 2. Run on a Windows (Microsoft) laptop</h2>
+
+<div class="step"><span class="n">1</span><b>Install Python 3.11 or newer.</b> Download from https://www.python.org/downloads/. In the installer, tick <b>"Add python.exe to PATH"</b> before clicking Install.</div>
+
+<div class="step"><span class="n">2</span><b>Install Git.</b> Download from https://git-scm.com and accept the defaults.</div>
+
+<div class="step"><span class="n">3</span><b>Open PowerShell.</b> Press the Windows key, type "PowerShell", press Enter. Open a new window after installing Python and Git.
+<pre>python --version</pre>
+It should show 3.11 or higher.</div>
+
+<div class="step"><span class="n">4</span><b>Download the code.</b>
+<pre>git clone https://github.com/vinyvidyvicy-sw/claude-ai.git
+cd claude-ai
+git checkout ccr-5a472752-cizl40</pre></div>
+
+<div class="step"><span class="n">5</span><b>Create an isolated environment and install.</b>
+<pre>python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt</pre>
+If PowerShell says scripts are disabled, run this once and retry the activate line:
+<pre>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</pre></div>
+
+<div class="step"><span class="n">6</span><b>Allow sign-in over plain http (local testing only).</b>
+<pre>$env:PORTAL_COOKIE_SECURE = "false"</pre></div>
+
+<div class="step"><span class="n">7</span><b>Create your admin user.</b>
+<pre>python -m app.cli create-admin admin</pre></div>
+
+<div class="step"><span class="n">8</span><b>Start the portal.</b>
+<pre>python -m uvicorn app.main:app_factory --factory --port 8000</pre>
+If Windows Firewall asks, choose Cancel (or private networks only). Other computers do not need access.</div>
+
+<div class="step"><span class="n">9</span><b>Open the portal.</b> Go to <code>http://localhost:8000</code> and sign in as <code>admin</code>.</div>
+
+<h3>Coming back later (Windows)</h3>
+<pre>cd claude-ai
+.\.venv\Scripts\Activate.ps1
+$env:PORTAL_COOKIE_SECURE = "false"
+python -m uvicorn app.main:app_factory --factory --port 8000</pre>
+
+<h3>Updating to the latest version (Windows)</h3>
+<pre>cd claude-ai
+git checkout ccr-5a472752-cizl40
+git pull
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+$env:PORTAL_COOKIE_SECURE = "false"
+python -m uvicorn app.main:app_factory --factory --port 8000</pre>
+
+<h2 class="pb">Part 3. Copy from GitHub to a laptop so other engineers can use it</h2>
+
+<div class="info"><b>Two different goals.</b><br>
+(a) <b>Each engineer runs their own copy</b> on their laptop (this guide). Each copy has its own users and audit log.<br>
+(b) <b>One shared portal</b> that all engineers open in a browser. That needs one server and HTTPS (see <code>docker-compose.https.yml</code> and the README). Use (b) when you need one central audit log.</div>
+
+<h3>A. Give the engineer access to the repository</h3>
+<ol>
+<li>The engineer needs a GitHub account.</li>
+<li>The repository owner opens the repo on GitHub, then <b>Settings, Collaborators</b> (or Manage access), then <b>Add people</b>, and invites the engineer. The engineer accepts the invitation email.</li>
+<li>If the repo is private and the engineer has no access, <code>git clone</code> fails with "not found" or "authentication failed".</li>
+</ol>
+
+<h3>B. Copy the code to the engineer's laptop</h3>
+<pre>git clone https://github.com/vinyvidyvicy-sw/claude-ai.git
+cd claude-ai
+git checkout ccr-5a472752-cizl40</pre>
+<p><b>Signing in to GitHub from the command line.</b> GitHub does not accept your account password for git. When prompted, either let the browser sign-in window complete (Git Credential Manager, included with Git for Windows and Homebrew git), or use a <b>personal access token</b> as the password: GitHub, Settings, Developer settings, Personal access tokens, create one with read access to the repository. Never share tokens in chat or email.</p>
+
+<h3>C. Then follow Part 1 (Mac) or Part 2 (Windows) from the "create environment" step</h3>
+<p>Each engineer creates their own admin with <code>python -m app.cli create-admin &lt;name&gt;</code>. Local copies do not share users with one another.</p>
+
+<h3>D. If git is not allowed on the laptop (zip download)</h3>
+<ol>
+<li>Open https://github.com/vinyvidyvicy-sw/claude-ai/tree/ccr-5a472752-cizl40 in a browser while signed in.</li>
+<li>Click the green <b>Code</b> button, then <b>Download ZIP</b>.</li>
+<li>Unzip it, open Terminal or PowerShell in the unzipped folder, and continue from the "create environment" step in Part 1 or Part 2. Updating later means downloading a new zip; copy your <code>data/portal.db</code> into the new folder to keep users and audit history.</li>
+</ol>
+
+<h3>E. Moving the code with no internet access to GitHub</h3>
+<p>On a machine that has the code: <code>git bundle create portal.bundle --all</code>, copy <code>portal.bundle</code> (USB or file share) to the target laptop, then <code>git clone portal.bundle claude-ai</code> and <code>git checkout ccr-5a472752-cizl40</code>. Python packages also need an internet or internal package mirror for <code>pip install</code>.</p>
+
+<h3>F. Good practice for sharing</h3>
+<ul>
+<li>The work is on branch <code>ccr-5a472752-cizl40</code> and is <b>not yet merged</b> into the main branch. Once the team agrees, merge it (pull request) so engineers can clone the default branch without <code>git checkout</code>.</li>
+<li>Do <b>not</b> commit device credentials, <code>.env</code>, <code>config/inventory.yaml</code> or <code>data/</code>. They are already git-ignored.</li>
+<li>Copy <code>config/inventory.example.yaml</code> to <code>config/inventory.yaml</code> and edit it with your real devices (config only, never in code).</li>
+<li>Device credentials are supplied by environment variables, for example <code>PORTAL_CRED_ISE_LAB_USERNAME</code> and <code>PORTAL_CRED_ISE_LAB_PASSWORD</code>, never typed into the portal.</li>
+<li>To get new versions, each engineer runs <code>git pull</code> and restarts the portal.</li>
+</ul>
+
+<h2>Troubleshooting</h2>
+<table>
+<tr><th>Problem</th><th>Fix</th></tr>
+<tr><td><code>python3</code> / <code>python</code> not found or too old</td><td>Install Python 3.11+ (Mac Part 1 step 3; Windows Part 2 step 1, tick "Add to PATH"). Open a new Terminal/PowerShell window.</td></tr>
+<tr><td><code>git: command not found</code></td><td>Mac: accept the Command Line Tools prompt. Windows: install Git from git-scm.com.</td></tr>
+<tr><td>Clone says "not found" or "authentication failed"</td><td>You do not have repository access, or you used your password instead of a token / browser sign-in. See Part 3, A and B.</td></tr>
+<tr><td>PowerShell: scripts are disabled</td><td><code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code></td></tr>
+<tr><td>Port already in use</td><td>Use <code>--port 8001</code> and open <code>http://localhost:8001</code>.</td></tr>
+<tr><td>Sign-in seems to do nothing</td><td>You skipped the <code>PORTAL_COOKIE_SECURE=false</code> step in this window. Set it again and restart.</td></tr>
+<tr><td>Account locked</td><td>Five wrong passwords lock it for 15 minutes. Wait, or create another admin: <code>python -m app.cli create-admin admin2</code>.</td></tr>
+<tr><td><code>git pull</code> refuses because of local changes</td><td>Run <code>git status</code> to see them; do not discard them without checking. Ask the team for help.</td></tr>
+<tr><td>Logos missing</td><td>Check <code>app/static/img</code> has <code>logo-mii.png</code> and <code>logo-metrodata.png</code>, then restart the portal and hard-refresh the browser.</td></tr>
+</table>
+
+<h2>Quick test checklist</h2>
+<ol>
+<li>Sign in as admin. The dashboard shows 7 platform tiles and both logos.</li>
+<li>Open Cisco NX-OS switches, Create VLAN, choose <code>nxos-lab-1</code>, VLAN 100, name <code>users</code>, click Preview changes.</li>
+<li>Click Confirm (simulate) and watch the log. No device is contacted.</li>
+<li>Users menu: create an engineer. Copy the one-time temporary password (shown once).</li>
+<li>Audit log menu: every action is recorded, with no passwords.</li>
+<li>Optional: <code>python -m pytest</code> should show <code>26 passed</code>.</li>
+</ol>
+</body></html>
