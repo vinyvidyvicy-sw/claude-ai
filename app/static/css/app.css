@@ -304,3 +304,15 @@ h1.with-icon .icon { width: 3.25rem; height: 3.25rem; }
 @media (forced-colors: active) { .lane-icon, .pill { border: 1px solid CanvasText; } }
 .lane-icon .icon { width: auto; height: auto; background: transparent; border: 0; color: inherit; border-radius: 0; }
 .lane-icon svg { width: 1.5rem; height: 1.5rem; }
+
+/* Garis panah alur */
+.flow { position: relative; }
+.flow-lines { position: absolute; inset: 0; pointer-events: none; overflow: visible; z-index: 2; }
+.flow-lines .ln { fill: none; stroke: var(--color-slide-arrow); stroke-width: 2.5; stroke-linejoin: round; }
+.flow-lines .head { fill: var(--color-slide-arrow); }
+.flow.has-lines .arr-up::before, .flow.has-lines .arr-down::after { display: none; }   /* panah kecil cadangan */
+/* arsitektur: garis + kepala panah antar-langkah */
+.arch-step:not(:last-child)::before { content: ""; position: absolute; left: 50%; bottom: -0.55rem; width: 2px; height: 0.6rem; margin-left: -1px; background: var(--color-slide-arrow); }
+.flow { gap: 1.2rem; }
+.flow-lines .ln { stroke-width: 2.2; }
+.flow { gap: 2.2rem; }

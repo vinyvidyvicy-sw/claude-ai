@@ -35,7 +35,7 @@
     <section class="flow-row lane lane-{{ lane.key | lower }}" aria-label="{{ lane.key }}">
       <div class="lane-label"><span class="lane-icon">{{ icon({"PEOPLE": "person-check", "AI": "brain", "AUTOMATION": "gears"}.get(lane.key, "bulb"), 24) }}</span><strong>{{ lane.key }}</strong><span>{{ lane.sub }}</span></div>
       <ol class="lane-steps cols-{{ n }}">{% for st in lane.steps %}
-        <li class="step col-{{ st.col }}{% if st.arrow %} arr-{{ st.arrow }}{% endif %}"><span class="stepnum">{{ st.n }}</span><span class="steptext">{{ st.text }}</span></li>{% endfor %}</ol>
+        <li class="step col-{{ st.col }}{% if st.arrow %} arr-{{ st.arrow }}{% endif %}" data-n="{{ st.n }}"><span class="stepnum">{{ st.n }}</span><span class="steptext">{{ st.text }}</span></li>{% endfor %}</ol>
     </section>{% endfor %}
   </div>
 </div>

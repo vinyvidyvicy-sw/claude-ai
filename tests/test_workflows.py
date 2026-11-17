@@ -338,15 +338,18 @@ def test_innovation_pages_and_launch(app):
                   "Predictive Maintenance for Machines", "Real-time Component Inspection"):
         assert title in page.text
     assert page.text.count("badge-category") == 4 and "Banking" in page.text and "Manufacturing" in page.text
-    # four cards carry text from the PDF; JPS, GTM and Document Procurement are left without document text
-    assert page.text.count("badge-source") == 4 and "Tidak ada di dokumen" not in page.text
     assert "Reads every page of a trade document set, checks it against the credit terms and the bank&#39;s rules, and explains each finding." in page.text
     assert "Textract" not in page.text and "Agentic" not in page.text   # procurement text was removed on request
-    assert page.text.count("Alamat dasbor: belum disiapkan (TODO)") == 5 and page.text.count("Dibuka di tab baru") == 2
+    # no TODO notes, no source/'Dari dokumen' messages, no repeated "opens in new tab" hints on the list
+    for banned in ("TODO", "Dari dokumen", "dokumen PDF", "belum disiapkan", "Dibuka di tab baru", "Lihat penjelasan"):
+        assert banned not in page.text, banned
+    # cards with document text link to their page; JPS and GTM open their dashboards directly
+    assert 'href="/inovasi/metrodata-ai-use-case/banking-trade-finance-document-examination"' in page.text
+    assert 'href="/launch/go-to-market"' in page.text and 'href="/launch/joint-planning-session"' in page.text
     assert c.get("/launch/metrodata-ai-use-case").headers["location"] == "/inovasi/metrodata-ai-use-case"
     # each card has its own page; not configured -> TODO, launch falls back to that page
     detail = c.get("/inovasi/metrodata-ai-use-case/document-procurement").text
-    assert "belum dikonfigurasi" in detail and "Textract" not in detail and "ASUMSI" not in detail
+    assert "TODO" not in detail and "belum dikonfigurasi" not in detail and "Textract" not in detail
     assert c.get("/launch/document-procurement").headers["location"] == "/inovasi/metrodata-ai-use-case/document-procurement"
     app.state.inventory._launchers["document-procurement"] = "https://docs.example.invalid/"
     assert 'href="/launch/document-procurement"' in c.get("/inovasi/metrodata-ai-use-case").text
@@ -444,9 +447,13 @@ def test_use_case_pages_show_pdf_text_as_is_and_unknowns_say_so(app):
                  "Dataiku and Amazon Bedrock, hybrid"):
         assert text in page, text
     assert "Halaman" not in page and "hal." not in page and "page 2" not in page   # page references are not shown in the UI
+    for banned in ("TODO", "Dari dokumen", "apa adanya", "Judul di dokumen", "belum dikonfigurasi"):
+        assert banned not in page, banned
+    one_liner = "Reads every page of a trade document set, checks it against the credit terms and the bank&#39;s rules, and explains each finding."
+    assert page.count(one_liner) == 1   # shown once, not repeated
     for uid in ("joint-planning-session", "go-to-market", "document-procurement"):
         p = c.get(f"/inovasi/metrodata-ai-use-case/{uid}").text
-        assert "Dari dokumen" not in p and "Halaman" not in p
+        assert "Dari dokumen" not in p and "Halaman" not in p and "TODO" not in p
 
 
 def test_every_source_text_line_is_present_in_the_yaml_and_matches_the_catalog(app):
@@ -475,6 +482,8 @@ def test_slide_layouts_follow_the_pdf(app):
     # the list page uses the PDF's row layout with a Level pill
     lst = c.get("/inovasi/metrodata-ai-use-case").text
     assert 'class="uc-row"' in lst and lst.count('class="pill"') == 4
+    assert 'data-n="1"' in page and 'src="/static/js/flow.js"' in page    # flow arrows are drawn by flow.js
+    assert c.get("/static/js/flow.js").status_code == 200
 
 
 def test_flow_steps_stay_inside_their_stage_columns(app):

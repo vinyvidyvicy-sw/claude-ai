@@ -72,7 +72,7 @@ innovation:
   - id: metrodata-ai-use-case
     title: Metrodata AI Use Case
     icon: sparkles
-    summary: 'Use case AI Metrodata di BFSI dan manufaktur. Kartu bertanda "Dari dokumen" berisi teks dari dokumen PDF "Metrodata AI Use Case" yang ditulis apa adanya. Pilih salah satu kartu di bawah.'
+    summary: 'Use case AI Metrodata di BFSI dan manufaktur.'
     use_cases:
       - id: joint-planning-session
         title: Joint Planning Session
@@ -104,7 +104,7 @@ innovation:
   - id: splunk-innovation
     title: Splunk Innovation
     icon: bulb
-    summary: "Inovasi dan use case berbasis Splunk. TODO: konten dan alamat halaman belum diberikan."
+    summary: "Inovasi dan use case berbasis Splunk."
 
 workflows:
   - id: ise-create-endpoint-group

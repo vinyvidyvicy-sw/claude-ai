@@ -8,18 +8,15 @@
 <p class="lead">{{ item.summary }}</p>
 
 {% if cards %}
-<h2>Dashboard</h2>
-<ul class="uc-rows" aria-label="Dashboard {{ item.title }}">
+<ul class="uc-rows" aria-label="{{ item.title }}">
   {% for c in cards %}
+  {% set href = ('/inovasi/' ~ item.id ~ '/' ~ c.uc.id) if c.src else ('/launch/' ~ c.uc.id if c.launch else None) %}
   <li class="uc-row">
     {{ icon(c.uc.icon, 28) }}
     <div class="uc-main">
-      <h2><a class="tile-link" href="{{ '/launch/' ~ c.uc.id if c.launch else '/inovasi/' ~ item.id ~ '/' ~ c.uc.id }}"
-             {% if c.launch %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ c.uc.title }}{% if c.launch %}<span class="visually-hidden"> (dibuka di tab baru)</span>{% endif %}</a></h2>
+      <h2>{% if href %}<a class="tile-link" href="{{ href }}" {% if not c.src and c.launch %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ c.uc.title }}{% if not c.src and c.launch %}<span class="visually-hidden"> (dibuka di tab baru)</span>{% endif %}</a>{% else %}{{ c.uc.title }}{% endif %}</h2>
       {% if c.src %}<p>{{ c.src.overview['One-line description'] }}</p>{% elif c.uc.summary %}<p>{{ c.uc.summary }}</p>{% endif %}
-      {% if c.uc.category or c.src or c.uc.assumption %}<p class="badges">{% if c.uc.category %}<span class="badge badge-category">{{ c.uc.category }}</span>{% endif %}{% if c.src %}<span class="badge badge-source">Dari dokumen</span>{% endif %}{% if c.uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>{% endif %}
-      {% if c.src %}<p class="meta"><a class="more uc-more" href="/inovasi/{{ item.id }}/{{ c.uc.id }}">Lihat penjelasan lengkap dari dokumen</a></p>{% endif %}
-      <p class="meta">{% if c.launch %}Dibuka di tab baru{% else %}Alamat dasbor: belum disiapkan (TODO){% endif %}</p>
+      {% if c.uc.category %}<p class="badges"><span class="badge badge-category">{{ c.uc.category }}</span></p>{% endif %}
     </div>
     {% if c.src %}
     <dl class="uc-meta">
@@ -34,7 +31,5 @@
 </ul>
 {% elif launch_url %}
 <p><a class="btn btn-primary" href="/launch/{{ item.id }}" target="_blank" rel="noopener noreferrer">Buka {{ item.title }}<span class="visually-hidden"> (dibuka di tab baru)</span></a></p>
-{% else %}
-<p class="todo"><strong>TODO:</strong> alamat untuk {{ item.title }} belum dikonfigurasi. Administrator menambahkannya di <code>config/inventory.yaml</code> pada bagian <code>launchers:</code> dengan kunci <code>{{ item.id }}</code> (lihat <code>config/inventory.example.yaml</code>) lalu memulai ulang portal.</p>
 {% endif %}
 {% endblock %}

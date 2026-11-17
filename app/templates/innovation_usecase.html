@@ -5,14 +5,10 @@
 {% block content %}
 <nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dashboard</a> / Inovasi / <a href="/inovasi/{{ item.id }}">{{ item.title }}</a> / <span aria-current="page">{{ uc.title }}</span></nav>
 <h1 class="with-icon">{{ icon(uc.icon, 34) }}<span>{{ uc.title }}</span></h1>
-{% if uc.category or src or uc.assumption %}<p class="badges">{% if uc.category %}<span class="badge badge-category">{{ uc.category }}</span>{% endif %}{% if src %}<span class="badge badge-source">Dari dokumen</span>{% endif %}{% if uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>{% endif %}
+{% if uc.category %}<p class="badges"><span class="badge badge-category">{{ uc.category }}</span></p>{% endif %}
 
 {% if src %}
-  <p class="lead">{{ src.overview['One-line description'] }}</p>
-  {% if src.mapping_note %}<p class="todo">{{ src.mapping_note }}</p>{% endif %}
-  <p class="notice">Teks di bawah disalin <strong>apa adanya</strong> dari dokumen <em>{{ src.document }}</em> (bahasa Inggris). Tidak diringkas, tidak diterjemahkan, dan tidak ditambah. Judul di dokumen: {{ src.pdf_title }}.</p>
-  <div class="slide-summary" aria-labelledby="ov-h">
-    <h2 id="ov-h" class="visually-hidden">Ringkasan</h2>
+  <div class="slide-summary">
     <ul class="uc-rows"><li class="uc-row">
       {{ icon(uc.icon, 28) }}
       <div class="uc-main"><p class="uc-title">{{ uc.title }}</p><p>{{ src.overview['One-line description'] }}</p></div>
@@ -37,8 +33,7 @@
 
 {% if launch_url %}
 <p><a class="btn btn-primary" href="/launch/{{ uc.id }}" target="_blank" rel="noopener noreferrer">Buka dashboard {{ uc.title }}<span class="visually-hidden"> (dibuka di tab baru)</span></a></p>
-{% else %}
-<p class="todo"><strong>TODO:</strong> alamat dashboard {{ uc.title }} belum dikonfigurasi. Administrator menambahkannya di <code>config/inventory.yaml</code> pada bagian <code>launchers:</code> dengan kunci <code>{{ uc.id }}</code> (lihat <code>config/inventory.example.yaml</code>) lalu memulai ulang portal.</p>
 {% endif %}
 <p><a href="/inovasi/{{ item.id }}">Kembali ke {{ item.title }}</a></p>
 {% endblock %}
+{% block scripts %}<script src="/static/js/flow.js" defer></script>{% endblock %}
