@@ -405,3 +405,21 @@ def test_dashboard_wording(app):
     login(c, "bob", "staple battery horse")
     html = c.get("/").text
     assert ">Dashboard</a>" in html and "Dasbor" not in html and "dasbor" not in html
+
+
+def test_device_console_link_is_audited(app):
+    import dataclasses
+    inv = app.state.inventory
+    dev = inv.get("nxos-lab-1")
+    inv._by_name["nxos-lab-1"] = dataclasses.replace(dev, console_url="https://192.0.2.13/console")
+    c = client_for(app)
+    login(c, "bob", "staple battery horse")
+    page = c.get("/p/nxos").text
+    assert 'href="/console/nxos-lab-1"' in page and 'target="_blank"' in page and "noopener" in page
+    r = c.get("/console/nxos-lab-1")
+    assert r.status_code == 303 and r.headers["location"] == "https://192.0.2.13/console"
+    with app.state.db.conn() as db:
+        row = db.execute("SELECT actor, action, target FROM audit_log WHERE action='device.console_open'").fetchone()
+    assert tuple(row) == ("bob", "device.console_open", "nxos-lab-1")
+    assert c.get("/console/ise-lab-1").status_code == 404   # no console_url configured
+    assert c.get("/console/tidak-ada").status_code == 404

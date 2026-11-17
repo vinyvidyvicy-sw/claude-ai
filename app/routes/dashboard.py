@@ -53,3 +53,20 @@ def launch(platform_id: str, request: Request, p: Principal = Depends(require_us
                      action="innovation.launch" if (item or parent_uc) else "platform.launch", target=platform_id,
                      result="success", ip=p.ip)
     return RedirectResponse(url, status_code=303)
+
+
+@router.get("/console/{device_name}")
+def open_console(device_name: str, request: Request, p: Principal = Depends(require_user)):
+    """Open a device's own management console (its https `console_url` from inventory.yaml).
+
+    The browser goes straight to the device; the portal proxies nothing and passes no credentials.
+    The click is recorded in the audit log (who opened which device, when).
+    """
+    st = request.app.state
+    dev = st.inventory.get(device_name)
+    if dev is None or not dev.console_url:
+        raise HTTPException(404)
+    with st.db.conn() as c:
+        audit.record(c, actor=p.username, actor_role=p.role, action="device.console_open", target=dev.name,
+                     result="success", ip=p.ip)
+    return RedirectResponse(dev.console_url, status_code=303)

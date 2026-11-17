@@ -2,8 +2,10 @@
 # ASSUMPTION: names and addresses below are placeholders (192.0.2.0/24 is the documentation range).
 # The portal never logs in to devices and stores no device credentials: the automation backend does.
 # `address` is informational (shown to engineers and passed to the backend as the target).
-# Optional `console_url` (must be https://) adds an "Open console" link to the platform page, e.g.
-#   console_url: https://<host-of-the-platform-console>
+# Optional `console_url` (must be https://) adds a "Buka konsol" link for that device on its platform page.
+# Use exactly the address you type in your browser today to reach that device's own web console, e.g.
+#   - {name: ise-lab-1, platform: ise, address: 192.0.2.10, console_url: "https://192.0.2.10/<path-yang-Anda-pakai>"}
+# Clicks are recorded in the audit log (device.console_open). The portal does not proxy or sign in for you.
 devices:
   - {name: ise-lab-1,    platform: ise,      address: 192.0.2.10}
   - {name: dnac-lab-1,   platform: sda,      address: 192.0.2.11}

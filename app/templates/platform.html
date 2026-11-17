@@ -42,7 +42,7 @@
   <tbody>
   {% for d in devices %}
     <tr><th scope="row">{{ d.name }}</th><td>{{ d.address }}</td>
-        <td>{% if d.console_url %}<a href="{{ d.console_url }}" target="_blank" rel="noopener noreferrer">Buka konsol<span class="visually-hidden"> untuk {{ d.name }} (dibuka di tab baru)</span></a>{% else %}<span class="meta">belum diatur</span>{% endif %}</td></tr>
+        <td>{% if d.console_url %}<a href="/console/{{ d.name }}" target="_blank" rel="noopener noreferrer">Buka konsol<span class="visually-hidden"> untuk {{ d.name }} (dibuka di tab baru)</span></a>{% else %}<span class="meta">belum diatur</span>{% endif %}</td></tr>
   {% endfor %}
   </tbody>
 </table>
