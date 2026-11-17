@@ -162,3 +162,11 @@ h1.with-icon .icon { width: 3.25rem; height: 3.25rem; }
   .login-layout { grid-template-columns: 1fr; }
   .login-rack { order: 2; }
 }
+
+/* Halaman masuk: judul di tengah (tebal), logo di sudut kanan atas */
+.login-title { text-align: center; font-weight: 700; font-size: 1.75rem; margin: 0.5rem 0 1.5rem; }
+.login-card h2 { margin-top: 0; font-size: 1.5rem; }
+.login-page .brand { order: 1; }
+.login-page .logos { order: 2; margin-left: auto; }
+.login-page .logos img { height: 2.75rem; max-width: 12rem; }
+@media (max-width: 40rem) { .login-title { font-size: 1.3rem; } .login-page .logos { margin-left: 0; } }

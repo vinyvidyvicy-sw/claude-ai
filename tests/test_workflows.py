@@ -387,3 +387,11 @@ def test_login_page_has_topology_background_and_rack_image(app):
         assert c.get("/static/img/" + f).status_code == 200
     css = c.get("/static/css/app.css").text
     assert "login-topology.jpg" in css and "opacity: 0.10" in css
+
+
+def test_login_title_centered_bold(app):
+    html = client_for(app).get("/login").text
+    assert '<h1 class="login-title">MII - Hybrid AI Infrastructure Lab Topology</h1>' in html
+    assert html.count('class="logos"') == 1  # logos only in the header (top-right), not repeated in the card
+    css = client_for(app).get("/static/css/app.css").text
+    assert ".login-title { text-align: center; font-weight: 700;" in css and "margin-left: auto" in css

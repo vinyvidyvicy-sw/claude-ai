@@ -2,10 +2,10 @@
 {% block title %}Masuk{% endblock %}
 {% block body_class %}login-page{% endblock %}
 {% block content %}
+<h1 class="login-title">MII - Hybrid AI Infrastructure Lab Topology</h1>
 <div class="login-layout">
   <section class="card login-card" aria-labelledby="h">
-    {% if logos %}<div class="logos logos-login">{% for l in logos %}<img src="{{ l.src }}" alt="{{ l.alt }}" height="48">{% endfor %}</div>{% endif %}
-    <h1 id="h">Masuk</h1>
+    <h2 id="h">Masuk</h2>
     {% if notice %}<p class="notice" role="status">{{ notice }}</p>{% endif %}
     {% if error %}<p class="alert" role="alert" data-focus>{{ error }}</p>{% endif %}
     <form method="post" action="/login" autocomplete="on">
