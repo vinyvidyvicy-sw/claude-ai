@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "_icons.html" import icon %}
+{% from "_slides.html" import level_pill %}
 {% block title %}{{ item.title }}{% endblock %}
 {% block content %}
 <nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dashboard</a> / Inovasi / <span aria-current="page">{{ item.title }}</span></nav>
@@ -8,25 +9,26 @@
 
 {% if cards %}
 <h2>Dashboard</h2>
-<ul class="tiles" aria-label="Dashboard {{ item.title }}">
+<ul class="uc-rows" aria-label="Dashboard {{ item.title }}">
   {% for c in cards %}
-  <li class="tile">
-    <div class="tile-head">
-      {{ icon(c.uc.icon, 30) }}
+  <li class="uc-row">
+    {{ icon(c.uc.icon, 28) }}
+    <div class="uc-main">
       <h2><a class="tile-link" href="{{ '/launch/' ~ c.uc.id if c.launch else '/inovasi/' ~ item.id ~ '/' ~ c.uc.id }}"
              {% if c.launch %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ c.uc.title }}{% if c.launch %}<span class="visually-hidden"> (dibuka di tab baru)</span>{% endif %}</a></h2>
+      {% if c.src %}<p>{{ c.src.overview['One-line description'] }}</p>{% elif c.uc.summary %}<p>{{ c.uc.summary }}</p>{% endif %}
+      {% if c.uc.category or c.src or c.uc.assumption %}<p class="badges">{% if c.uc.category %}<span class="badge badge-category">{{ c.uc.category }}</span>{% endif %}{% if c.src %}<span class="badge badge-source">Dari dokumen</span>{% endif %}{% if c.uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>{% endif %}
+      {% if c.src %}<p class="meta"><a class="more uc-more" href="/inovasi/{{ item.id }}/{{ c.uc.id }}">Lihat penjelasan lengkap dari dokumen (hal. {{ c.src.pages }})</a></p>{% endif %}
+      <p class="meta">{% if c.launch %}Dibuka di tab baru{% else %}Alamat dasbor: belum disiapkan (TODO){% endif %}</p>
     </div>
-    {% if c.src %}<p>{{ c.src.overview['One-line description'] }}</p>{% elif c.uc.summary %}<p>{{ c.uc.summary }}</p>{% endif %}
     {% if c.src %}
-    <dl class="mini">
+    <dl class="uc-meta">
       <div><dt>Industry</dt><dd>{{ c.src.overview['Industry'] }}</dd></div>
       <div><dt>Runs on</dt><dd>{{ c.src.overview['Runs on'] }}</dd></div>
       <div><dt>Timeline</dt><dd>{{ c.src.overview['Timeline'] }}</dd></div>
     </dl>
+    <div class="uc-level">{{ level_pill(c.src.overview['Level']) }}</div>
     {% endif %}
-    {% if c.uc.category or c.src or c.uc.assumption %}<p class="badges">{% if c.uc.category %}<span class="badge badge-category">{{ c.uc.category }}</span>{% endif %}{% if c.src %}<span class="badge badge-source">Dari dokumen</span>{% endif %}{% if c.uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>{% endif %}
-    {% if c.src %}<p class="meta"><a class="more" href="/inovasi/{{ item.id }}/{{ c.uc.id }}">Lihat penjelasan lengkap dari dokumen (hal. {{ c.src.pages }})</a></p>{% endif %}
-    <p class="meta">{% if c.launch %}Dibuka di tab baru{% else %}Alamat dasbor: belum disiapkan (TODO){% endif %}</p>
   </li>
   {% endfor %}
 </ul>

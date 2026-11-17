@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "_icons.html" import icon %}
+{% from "_slides.html" import blueprint, flow, level_pill %}
 {% block title %}{{ uc.title }}{% endblock %}
 {% block content %}
 <nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dashboard</a> / Inovasi / <a href="/inovasi/{{ item.id }}">{{ item.title }}</a> / <span aria-current="page">{{ uc.title }}</span></nav>
@@ -10,22 +11,24 @@
   <p class="lead">{{ src.overview['One-line description'] }}</p>
   {% if src.mapping_note %}<p class="todo">{{ src.mapping_note }}</p>{% endif %}
   <p class="notice">Teks di bawah disalin <strong>apa adanya</strong> dari dokumen <em>{{ src.document }}</em> (bahasa Inggris), halaman {{ src.pages }}. Tidak diringkas, tidak diterjemahkan, dan tidak ditambah. Judul di dokumen: {{ src.pdf_title }}.</p>
-  <section class="card" aria-labelledby="ov-h">
-    <h2 id="ov-h">Ringkasan (halaman 2)</h2>
-    <dl class="facts">{% for k, v in src.overview.items() %}<div><dt>{{ k }}</dt><dd>{{ v }}</dd></div>{% endfor %}</dl>
-  </section>
+  <div class="slide-summary" aria-labelledby="ov-h">
+    <h2 id="ov-h" class="visually-hidden">Ringkasan (halaman 2)</h2>
+    <ul class="uc-rows"><li class="uc-row">
+      {{ icon(uc.icon, 28) }}
+      <div class="uc-main"><p class="uc-title">{{ uc.title }}</p><p>{{ src.overview['One-line description'] }}</p></div>
+      <dl class="uc-meta">
+        <div><dt>Industry</dt><dd>{{ src.overview['Industry'] }}</dd></div>
+        <div><dt>Runs on</dt><dd>{{ src.overview['Runs on'] }}</dd></div>
+        <div><dt>Timeline</dt><dd>{{ src.overview['Timeline'] }}</dd></div>
+      </dl>
+      <div class="uc-level">{{ level_pill(src.overview['Level']) }}</div>
+    </li></ul>
+  </div>
   {% for b in src.blocks %}
-  <section class="card" aria-labelledby="b{{ loop.index }}-h">
-    <h2 id="b{{ loop.index }}-h">Halaman {{ b.page }}: {{ b.title }}</h2>
-    {% if b.subtitle %}<p class="help"><em>{{ b.subtitle }}</em></p>{% endif %}
-    <div class="src-grid">
-    {% for g in b.groups %}
-      <div class="src-group">
-        <h3>{{ g.heading }}</h3>
-        <ul>{% for x in g['items'] %}<li>{{ x }}</li>{% endfor %}</ul>
-      </div>
-    {% endfor %}
-    </div>
+  <section class="slide" aria-labelledby="b{{ loop.index }}-h">
+    <h2 id="b{{ loop.index }}-h" class="slide-title">Halaman {{ b.page }}: {{ b.title }}</h2>
+    {% if b.subtitle %}<p class="slide-sub"><em>{{ b.subtitle }}</em></p>{% endif %}
+    {% if b.kind == 'blueprint' %}{{ blueprint(b) }}{% else %}{{ flow(b) }}{% endif %}
   </section>
   {% endfor %}
 {% elif uc.summary %}

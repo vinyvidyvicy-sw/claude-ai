@@ -505,11 +505,25 @@ def load_sources(path: Path, catalog: WorkflowCatalog) -> dict[str, dict]:
             problems.append(f"use_case_sources.{cid}: 'blocks' must be a list")
             continue
         for k, b in enumerate(case["blocks"]):
-            ok = isinstance(b, dict) and b.get("title") and isinstance(b.get("groups"), list) and all(
-                isinstance(g, dict) and g.get("heading") and isinstance(g.get("items"), list)
-                and all(isinstance(x, str) for x in g["items"]) for g in b["groups"])
-            if not ok:
-                problems.append(f"use_case_sources.{cid}.blocks[{k}]: needs title and groups[heading, items[str]]")
+            loc = f"use_case_sources.{cid}.blocks[{k}]"
+            if not isinstance(b, dict) or not b.get("title"):
+                problems.append(f"{loc}: needs a title")
+                continue
+            if b.get("kind") == "blueprint":
+                need = ("problem", "solution", "trust", "readiness", "architecture", "impact", "effort", "roadmap")
+                for key in need:
+                    if key not in b:
+                        problems.append(f"{loc}: blueprint is missing {key!r}")
+            elif b.get("kind") == "flow":
+                cols = len(b.get("stages") or [])
+                for lane in b.get("lanes") or []:
+                    for st in lane.get("steps") or []:
+                        if not (1 <= int(st.get("col", 0)) <= cols):
+                            problems.append(f"{loc}: step {st.get('n')} has a column outside the stages")
+                if not cols or not b.get("lanes"):
+                    problems.append(f"{loc}: flow needs stages and lanes")
+            else:
+                problems.append(f"{loc}: kind must be 'blueprint' or 'flow'")
     if problems:
         raise WorkflowConfigError(problems)
     return {cid: dict(case, document=raw.get("document", "")) for cid, case in cases.items()}

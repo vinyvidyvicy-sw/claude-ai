@@ -440,7 +440,7 @@ def test_use_case_pages_show_pdf_text_as_is_and_unknowns_say_so(app):
     page = c.get("/inovasi/metrodata-ai-use-case/banking-trade-finance-document-examination").text
     for text in ("Owner: Trade operations, with the checkers", "Target of two minutes or less per set",
                  "Three Linux VMs on the bank&#39;s servers", "Phase 3, SIT, UAT and handover",
-                 "Banking, the document examination flow", "(11) Every decision, override and source is written to the process log",
+                 "Banking, the document examination flow", "Every decision, override and source is written to the process log",
                  "Dataiku and Amazon Bedrock, hybrid"):
         assert text in page, text
     assert "Halaman 3:" in page and "Halaman 4:" in page
@@ -455,3 +455,35 @@ def test_every_source_text_line_is_present_in_the_yaml_and_matches_the_catalog(a
     assert set(st.sources) <= ids and set(st.sources) == ids - {"joint-planning-session", "go-to-market", "document-procurement"}
     for cid, case in st.sources.items():
         assert case["pages"] and case["blocks"] and case["overview"]["One-line description"]
+
+
+def test_slide_layouts_follow_the_pdf(app):
+    c = client_for(app)
+    login(c, "bob", "staple battery horse")
+    page = c.get("/inovasi/metrodata-ai-use-case/banking-trade-finance-document-examination").text
+    # blueprint: seven numbered sections + architecture, in the PDF's headings
+    for h in ("1. Problem statement and owner", "2. High level solution", "3. Level of trust and human gates",
+              "4. Data and system readiness", "High level solution, architecture", "5. Expected business impact",
+              "6. Effort, duration and team", "7. Sequence and roadmap"):
+        assert h in page, h
+    assert page.count('class="bp-card') == 5 and page.count('class="bp-block') == 3 and page.count("arch-step") == 5
+    assert "Level 2" in page and "Prepares, you decide" in page and "WHAT IT DOES" in page
+    # flow: stage columns and the three lanes with numbered steps placed in columns
+    assert "01</span> Receive" in page and 'aria-label="PEOPLE"' in page and 'aria-label="AI"' in page and 'aria-label="AUTOMATION"' in page
+    assert 'class="step col-5"' in page and page.count('class="stepnum"') == 11
+    # the list page uses the PDF's row layout with a Level pill
+    lst = c.get("/inovasi/metrodata-ai-use-case").text
+    assert 'class="uc-row"' in lst and lst.count('class="pill"') == 4
+
+
+def test_flow_steps_stay_inside_their_stage_columns(app):
+    for cid, case in app.state.sources.items():
+        for b in case["blocks"]:
+            if b["kind"] == "flow":
+                n = len(b["stages"])
+                steps = [s for lane in b["lanes"] for s in lane["steps"]]
+                assert all(1 <= s["col"] <= n for s in steps)
+                assert sorted(s["n"] for s in steps) == list(range(1, len(steps) + 1))   # steps 1..N, none lost
+                for lane in b["lanes"]:                                                      # one step per lane column
+                    cols = [s["col"] for s in lane["steps"]]
+                    assert len(cols) == len(set(cols))

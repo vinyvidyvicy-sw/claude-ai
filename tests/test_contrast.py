@@ -22,7 +22,11 @@ TEXT = [("text", "bg"), ("text", "surface"), ("muted", "bg"), ("muted", "surface
         ("accent", "surface"), ("accent-hover", "bg"), ("on-accent", "accent"), ("on-accent", "accent-hover"),
         ("on-danger", "danger"), ("danger", "bg"), ("danger", "danger-bg"), ("success", "bg"),
         ("warn-text", "warn-bg"), ("info-text", "info-bg"), ("accent", "info-bg"), ("danger-bg", "danger-bg"),
-        ("info-text", "bg")]
+        ("info-text", "bg"),
+        ("on-navy", "navy"), ("on-navy", "navy-alt"), ("on-navy", "slide-gold"), ("slide-gold-light", "navy"),
+        ("slide-gold", "bg"), ("slide-gold", "cream"), ("slide-gold", "lane-auto"), ("navy", "cream"), ("navy", "bg"),
+        ("navy", "lane-ai"), ("navy", "slide-gold-light"), ("navy", "lane-auto"), ("text", "lane-auto"), ("muted", "lane-auto"),
+        ("navy", "info-bg"), ("accent", "lane-auto")]
 NONTEXT = [("border", "bg"), ("focus", "bg"), ("accent", "bg")]
 
 
