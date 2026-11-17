@@ -169,3 +169,23 @@ h1.with-icon .icon { width: 3.25rem; height: 3.25rem; }
 .login-page .logos { order: 2; margin-left: auto; }
 .login-page .logos img { height: 2.75rem; max-width: 12rem; }
 @media (max-width: 40rem) { .login-title { font-size: 1.3rem; } .login-page .logos { margin-left: 0; } }
+
+/* ---- Halaman masuk: gaya bersih ala situs korporat (latar putih, ruang kosong luas, kartu bergaris tipis,
+        tombol pil, aksen biru). Warna/font netral; token merek resmi diatur di theme.css bila sudah diizinkan. ---- */
+.login-page .site-header { border-bottom: 1px solid var(--color-border-soft); }
+.login-page .header-row { padding-block: 1rem; }
+.login-page .brand { font-weight: 600; letter-spacing: 0.01em; }
+.login-page main { padding-top: 2.5rem; }
+.login-hero { text-align: center; margin-bottom: 2.5rem; }
+.login-hero .login-title { margin: 0; font-size: clamp(1.6rem, 3.2vw, 2.4rem); line-height: 1.2; letter-spacing: -0.01em; }
+.login-rule { display: block; width: 4rem; height: 4px; margin: 1.1rem auto 0; background: var(--color-accent); border-radius: 2px; }
+.login-page .login-layout { gap: 2rem; min-height: 0; padding-bottom: 2.5rem; }
+.login-page .login-card { padding: 2rem; border-radius: 0.75rem; border: 1px solid var(--color-border-soft); box-shadow: 0 2px 12px rgb(0 0 0 / 8%); }
+.login-page .login-card h2 { font-size: 1.4rem; font-weight: 600; margin-bottom: 1.25rem; }
+.login-page .login-card label { font-weight: 600; font-size: 0.95rem; }
+.login-page .login-card input[type="text"], .login-page .login-card input[type="password"] { max-width: none; min-height: 3rem; border-radius: 0.375rem; }
+.login-page .login-card .btn-primary { width: 100%; border-radius: 999px; padding: 0.8rem 1.5rem; font-size: 1rem; margin-top: 0.5rem; }
+.login-page .login-figure { background: var(--color-bg); border: 1px solid var(--color-border-soft); border-radius: 0.75rem; overflow: hidden; box-shadow: 0 2px 12px rgb(0 0 0 / 8%); }
+.login-page .login-figure img { border: 0; border-radius: 0; box-shadow: none; }
+.login-page .login-figure figcaption { padding: 0.75rem 1rem; font-weight: 600; font-size: 0.95rem; border-top: 1px solid var(--color-border-soft); }
+.login-page .site-footer { margin-top: 1rem; }

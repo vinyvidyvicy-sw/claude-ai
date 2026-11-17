@@ -2,10 +2,14 @@
 {% block title %}Masuk{% endblock %}
 {% block body_class %}login-page{% endblock %}
 {% block content %}
-<h1 class="login-title">MII - Hybrid AI Infrastructure Lab Topology</h1>
+<div class="login-hero">
+  <h1 class="login-title">MII - Hybrid AI Infrastructure Lab Topology</h1>
+  <span class="login-rule" aria-hidden="true"></span>
+</div>
 <div class="login-layout">
   <figure class="login-figure login-topology">
     <img src="/static/img/login-topology.jpg" width="1365" height="768" alt="Diagram topologi MII Hybrid AI Infrastructure Lab: pod ACI, pod SDA, dan SD-WAN">
+    <figcaption>Topologi lab</figcaption>
   </figure>
   <section class="card login-card" aria-labelledby="h">
     <h2 id="h">Masuk</h2>
@@ -28,6 +32,7 @@
   </section>
   <figure class="login-figure login-rack">
     <img src="/static/img/login-rack.jpg" width="1024" height="559" alt="Rak perangkat jaringan dan server di lab">
+    <figcaption>Rak perangkat</figcaption>
   </figure>
 </div>
 {% endblock %}
