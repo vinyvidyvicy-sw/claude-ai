@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,20 +9,32 @@
   {% block head %}{% endblock %}
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to main content</a>
+  <a class="skip-link" href="#main">Langsung ke konten utama</a>
   <header class="site-header">
     <div class="container header-row">
       {# TODO(brand): no Cisco logo until the organisation confirms it may use it. #}
       {% if logos %}<div class="logos">{% for l in logos %}<img src="{{ l.src }}" alt="{{ l.alt }}" height="36">{% endfor %}</div>{% endif %}
       <a class="brand" href="/">{{ app_title }}</a>
       {% if principal %}
-      <nav aria-label="Primary" class="nav">
+      <nav aria-label="Utama" class="nav">
         <ul>
-          <li><a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>Dashboard</a></li>
-          <li><a href="/runs" {% if request.url.path.startswith('/runs') %}aria-current="page"{% endif %}>Runs</a></li>
+          <li><a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>Dasbor</a></li>
+          {% if innovation_items %}
+          <li>
+            <details class="nav-menu" {% if request.url.path.startswith('/inovasi') %}open{% endif %}>
+              <summary {% if request.url.path.startswith('/inovasi') %}aria-current="page"{% endif %}>Inovasi</summary>
+              <ul>
+                {% for it in innovation_items %}
+                <li><a href="/inovasi/{{ it.id }}" {% if request.url.path == '/inovasi/' ~ it.id %}aria-current="page"{% endif %}>{{ it.title }}</a></li>
+                {% endfor %}
+              </ul>
+            </details>
+          </li>
+          {% endif %}
+          <li><a href="/runs" {% if request.url.path.startswith('/runs') %}aria-current="page"{% endif %}>Riwayat</a></li>
           {% if principal.is_admin %}
-          <li><a href="/admin/users" {% if request.url.path.startswith('/admin/users') %}aria-current="page"{% endif %}>Users</a></li>
-          <li><a href="/admin/audit" {% if request.url.path.startswith('/admin/audit') %}aria-current="page"{% endif %}>Audit log</a></li>
+          <li><a href="/admin/users" {% if request.url.path.startswith('/admin/users') %}aria-current="page"{% endif %}>Pengguna</a></li>
+          <li><a href="/admin/audit" {% if request.url.path.startswith('/admin/audit') %}aria-current="page"{% endif %}>Log audit</a></li>
           {% endif %}
         </ul>
       </nav>
@@ -30,7 +42,7 @@
         <a href="/account/password">{{ principal.username }} <span class="role">({{ principal.role }})</span></a>
         <form method="post" action="/logout">
           <input type="hidden" name="csrf_token" value="{{ csrf }}">
-          <button class="btn btn-quiet" type="submit">Sign out</button>
+          <button class="btn btn-quiet" type="submit">Keluar</button>
         </form>
       </div>
       {% endif %}
@@ -39,9 +51,9 @@
     <div class="mode-bar {{ 'mode-live' if execution_mode == 'live' else 'mode-dry' }}" role="note">
       <div class="container">
         {% if execution_mode == 'live' %}
-          <strong>LIVE mode</strong> — confirmed requests are sent to the automation backend, which changes the devices.
+          <strong>Mode LIVE</strong> — permintaan yang dikonfirmasi dikirim ke backend otomasi, yang kemudian mengubah perangkat.
         {% else %}
-          <strong>DRY-RUN mode</strong> — confirmed requests are simulated; nothing is sent to the backend or any device.
+          <strong>Mode DRY-RUN</strong> — permintaan yang dikonfirmasi hanya disimulasikan; tidak ada yang dikirim ke backend maupun perangkat.
         {% endif %}
       </div>
     </div>
@@ -54,7 +66,7 @@
   </main>
 
   <footer class="container site-footer">
-    <small>Internal use only. Actions are recorded in the audit log.</small>
+    <small>Hanya untuk penggunaan internal. Semua tindakan dicatat dalam log audit.</small>
   </footer>
   <script src="/static/js/app.js" defer></script>
   {% block scripts %}{% endblock %}

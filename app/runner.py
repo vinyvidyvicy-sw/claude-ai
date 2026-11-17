@@ -33,6 +33,7 @@ from .settings import Settings
 from .workflows import WorkflowCatalog, Workflow, build_plan, plan_hash
 
 log = logging.getLogger("portal.runner")
+STATUS_ID = {"succeeded": "berhasil", "failed": "gagal"}
 
 
 @dataclass
@@ -111,37 +112,37 @@ class RunManager:
         with self.db.conn() as c:
             run = c.execute("SELECT * FROM runs WHERE id=?", (run_id,)).fetchone()
             if run is None:
-                return "Run not found."
+                return "Proses tidak ditemukan."
             if run["user_id"] != user_id:
                 self._deny(c, username, role, run, ip, "not the user who created the preview")
-                return "Only the user who created the preview can confirm it."
+                return "Hanya pengguna yang membuat pratinjau yang dapat mengonfirmasinya."
             if run["status"] != "previewed":
-                return f"This run is already {run['status']}; start a new preview."
+                return f"Proses ini sudah berstatus {run['status']}; buat pratinjau baru."
             if run["expires_at"] <= timeutil.now_iso():
                 c.execute("UPDATE runs SET status='expired' WHERE id=?", (run_id,))
-                return "This preview expired. Please preview again."
+                return "Pratinjau ini sudah kedaluwarsa. Silakan buat pratinjau lagi."
             wf = self.catalog.workflows.get(run["workflow_id"])
             params = json.loads(run["params_json"])
             plan = json.loads(run["plan_json"])
             if wf is None or wf.hash != run["workflow_hash"]:
                 c.execute("UPDATE runs SET status='expired' WHERE id=?", (run_id,))
-                return "The workflow definition changed since the preview. Please preview again."
+                return "Definisi workflow berubah sejak pratinjau dibuat. Silakan buat pratinjau lagi."
             if plan_hash(plan, params) != run["plan_hash"]:
                 c.execute("UPDATE runs SET status='failed', finished_at=?, result_summary='plan integrity check failed'"
                           " WHERE id=?", (timeutil.now_iso(), run_id))
                 audit.record(c, actor=username, actor_role=role, action="workflow.confirm", target=run["workflow_id"],
                              result="denied", detail=f"run={run_id}: plan hash mismatch", ip=ip)
-                return "The stored plan failed its integrity check; nothing was run."
+                return "Rencana yang tersimpan gagal pemeriksaan integritas; tidak ada yang dijalankan."
             now = timeutil.now_iso()
             # Single conditional UPDATE makes a double-submit start the run only once.
             cur = c.execute(
                 "UPDATE runs SET status='running', confirmed_at=?, confirmed_by=?, started_at=?"
                 " WHERE id=? AND status='previewed'", (now, username, now, run_id))
             if cur.rowcount != 1:
-                return "This run was already confirmed."
+                return "Proses ini sudah dikonfirmasi."
             audit.record(c, actor=username, actor_role=role, action="workflow.confirm", target=run["workflow_id"],
                          params=params, result="success", detail=f"run={run_id} mode={run['mode']}", ip=ip)
-        self.log(run_id, "info", f"Confirmed by {username}. Mode: {run['mode']}.")
+        self.log(run_id, "info", f"Dikonfirmasi oleh {username}. Mode: {run['mode']}.")
         self.submit(run_id)
         return None
 
@@ -149,7 +150,7 @@ class RunManager:
         with self.db.conn() as c:
             run = c.execute("SELECT * FROM runs WHERE id=?", (run_id,)).fetchone()
             if run is None or run["user_id"] != user_id or run["status"] != "previewed":
-                raise RunError("Nothing to cancel.")
+                raise RunError("Tidak ada yang dapat dibatalkan.")
             c.execute("UPDATE runs SET status='cancelled', finished_at=? WHERE id=?", (timeutil.now_iso(), run_id))
             audit.record(c, actor=username, actor_role=role, action="workflow.cancel", target=run["workflow_id"],
                          result="success", detail=f"run={run_id}", ip=ip)
@@ -174,27 +175,27 @@ class RunManager:
         ok, summary = True, ""
         try:
             for step in plan["steps"]:
-                self.log(run_id, "info", f"Requested: {step['description']} [{step['target']}]")
+                self.log(run_id, "info", f"Diminta: {step['description']} [{step['target']}]")
             d = plan["dispatch"]
             if dry:
-                self.log(run_id, "info", "DRY-RUN: nothing was sent to the automation backend "
-                                         "and no device was contacted.")
-                summary = "Dry-run complete: no request was sent to the backend; no device was changed."
+                self.log(run_id, "info", "DRY-RUN: tidak ada yang dikirim ke backend otomasi "
+                                         "dan tidak ada perangkat yang dihubungi.")
+                summary = "Dry-run selesai: tidak ada permintaan yang dikirim ke backend; tidak ada perangkat yang diubah."
             else:
                 ok, summary = self._dispatch(run_id, run, plan, d)
         except Exception as exc:  # defensive: never leave a run stuck in 'running'
-            ok, summary = False, f"Unexpected error: {type(exc).__name__}"
+            ok, summary = False, f"Kesalahan tak terduga: {type(exc).__name__}"
             log.exception("run %s crashed", run_id)
         self._finish(run_id, run, ok, summary)
 
     def _dispatch(self, run_id: str, run: sqlite3.Row, plan: dict[str, Any], d: dict[str, Any]) -> tuple[bool, str]:
         if not d["defined"]:
-            self.log(run_id, "error", "Refused: this workflow's dispatch (backend/job) is TODO in workflows.yaml.")
-            return False, "dispatch backend/job is TODO"
+            self.log(run_id, "error", "Ditolak: dispatch (backend/job) workflow ini masih TODO di workflows.yaml.")
+            return False, "dispatch backend/job masih TODO"
         backend = BACKENDS.get(d["backend"])
         if backend is None:
-            self.log(run_id, "error", f"Refused: no backend registered under the name '{d['backend']}'.")
-            return False, f"no backend '{d['backend']}'"
+            self.log(run_id, "error", f"Ditolak: tidak ada backend terdaftar dengan nama '{d['backend']}'.")
+            return False, f"tidak ada backend '{d['backend']}'"
         job = {"run_id": run_id, "requested_by": run["confirmed_by"], "workflow_id": run["workflow_id"],
                "platform": run["platform"], "backend_job": d["job"],
                "targets": sorted({s["target"] for s in plan["steps"] if s["target"]}),
@@ -202,11 +203,11 @@ class RunManager:
         try:
             job_id = backend.submit(job)
         except Exception as exc:
-            self.log(run_id, "error", f"Backend rejected the request: {type(exc).__name__}: {exc}")
-            return False, f"backend submit failed ({type(exc).__name__})"
+            self.log(run_id, "error", f"Backend menolak permintaan: {type(exc).__name__}: {exc}")
+            return False, f"pengiriman ke backend gagal ({type(exc).__name__})"
         with self.db.conn() as c:
             c.execute("UPDATE runs SET backend_job_id=? WHERE id=?", (str(job_id), run_id))
-        self.log(run_id, "info", f"Submitted to backend '{d['backend']}'. Backend job id: {job_id}")
+        self.log(run_id, "info", f"Dikirim ke backend '{d['backend']}'. ID job backend: {job_id}")
 
         deadline = time.monotonic() + self.settings.backend_timeout_seconds
         seen = 0
@@ -214,23 +215,23 @@ class RunManager:
             try:
                 st = backend.poll(job_id)
             except Exception as exc:
-                self.log(run_id, "error", f"Could not read backend status: {type(exc).__name__}: {exc}")
-                return False, f"lost contact with backend; check job {job_id} there"
+                self.log(run_id, "error", f"Tidak dapat membaca status backend: {type(exc).__name__}: {exc}")
+                return False, f"kehilangan kontak dengan backend; periksa job {job_id} di sana"
             for line in st.lines[seen:]:
                 self.log(run_id, "info", f"[backend] {line}")
             seen = len(st.lines)
             if st.state == "succeeded":
-                return True, st.summary or f"Backend job {job_id} succeeded."
+                return True, st.summary or f"Job backend {job_id} berhasil."
             if st.state == "failed":
-                return False, st.summary or f"Backend job {job_id} failed."
+                return False, st.summary or f"Job backend {job_id} gagal."
             if time.monotonic() > deadline:
-                self.log(run_id, "error", "Stopped waiting for the backend. The job may still be running there.")
-                return False, f"timed out waiting; check backend job {job_id}"
+                self.log(run_id, "error", "Berhenti menunggu backend. Job mungkin masih berjalan di sana.")
+                return False, f"batas waktu menunggu habis; periksa job backend {job_id}"
             time.sleep(self.settings.backend_poll_seconds)
 
     def _finish(self, run_id: str, run: sqlite3.Row, ok: bool, summary: str) -> None:
         status = "succeeded" if ok else "failed"
-        self.log(run_id, "info" if ok else "error", f"Run {status}. {summary}")
+        self.log(run_id, "info" if ok else "error", f"Proses {STATUS_ID[status]}. {summary}")
         with self.db.conn() as c:
             c.execute("UPDATE runs SET status=?, finished_at=?, result_summary=? WHERE id=?",
                       (status, timeutil.now_iso(), summary[:500], run_id))
@@ -244,7 +245,7 @@ class RunManager:
             rows = c.execute("SELECT * FROM runs WHERE status='running'").fetchall()
             for r in rows:
                 c.execute("UPDATE runs SET status='failed', finished_at=?, result_summary=? WHERE id=?",
-                          (timeutil.now_iso(), "interrupted by portal restart; check the backend job for the real outcome", r["id"]))
+                          (timeutil.now_iso(), "terhenti karena portal dimulai ulang; periksa job di backend untuk hasil sebenarnya", r["id"]))
                 audit.record(c, actor="system", action="workflow.run", target=r["workflow_id"],
                              result="failed", detail=f"run={r['id']}: interrupted by restart")
         return len(rows)

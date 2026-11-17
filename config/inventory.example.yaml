@@ -18,3 +18,7 @@ devices:
 # launchers:
 #   ekahau:
 #     url: https://<address-of-ekahau-design>
+#   metrodata-ai-use-case:         # menu Inovasi
+#     url: https://<address-of-metrodata-ai-use-case-page>
+#   splunk-innovation:             # menu Inovasi
+#     url: https://<address-of-splunk-innovation-page>

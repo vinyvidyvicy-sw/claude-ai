@@ -10,6 +10,7 @@ from ..security import temporary_password
 
 router = APIRouter(prefix="/admin")
 PAGE = 50
+ACTION_ID = {"disable": "nonaktifkan", "enable": "aktifkan", "reset": "reset kata sandi", "unlock": "buka kunci"}
 
 
 @router.get("/users")
@@ -39,7 +40,7 @@ async def user_create(request: Request, form=Depends(csrf_form), p: Principal = 
                       roles=users.ROLES, errors=[str(exc)], form_username=username, status_code=400)
     # Shown once, in this response only; never stored in plaintext.
     return render(request, "admin_temp_password.html", principal=p, target=username, temp_password=temp,
-                  verb="created")
+                  verb="dibuat")
 
 
 @router.post("/users/{user_id}/{action}")
@@ -56,9 +57,9 @@ async def user_action(user_id: int, action: str, request: Request,
         problem = None
         if action == "disable":
             if target["id"] == p.user_id:
-                problem = "You cannot disable your own account."
+                problem = "Anda tidak dapat menonaktifkan akun Anda sendiri."
             elif target["role"] == "admin" and target["is_active"] and users.active_admin_count(c) <= 1:
-                problem = "You cannot disable the last active administrator."
+                problem = "Anda tidak dapat menonaktifkan administrator aktif yang terakhir."
         if problem:
             audit.record(c, actor=p.username, actor_role=p.role, action=f"user.{action}", target=name,
                          result="denied", detail=problem, ip=p.ip)
@@ -80,10 +81,10 @@ async def user_action(user_id: int, action: str, request: Request,
         audit.record(c, actor=p.username, actor_role=p.role, action=f"user.{action}", target=name,
                      result="success", ip=p.ip)
         if temp is None:
-            sessions.set_flash(c, session_token(request), f"User {name}: {action} done.")
+            sessions.set_flash(c, session_token(request), f"Pengguna {name}: tindakan {ACTION_ID[action]} selesai.")
     if temp is not None:
         return render(request, "admin_temp_password.html", principal=p, target=name, temp_password=temp,
-                      verb="reset")
+                      verb="direset")
     return RedirectResponse("/admin/users", status_code=303)
 
 

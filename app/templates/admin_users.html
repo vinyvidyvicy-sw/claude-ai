@@ -1,34 +1,34 @@
 {% extends "base.html" %}
-{% block title %}Users{% endblock %}
+{% block title %}Pengguna{% endblock %}
 {% block content %}
-<h1>Users</h1>
+<h1>Pengguna</h1>
 {% if errors %}<div class="alert" role="alert" data-focus tabindex="-1"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
 
 <section class="card" aria-labelledby="new-h">
-  <h2 id="new-h">Create user</h2>
-  <p class="help">A one-time temporary password is generated and shown once. The user must change it at first sign-in.</p>
+  <h2 id="new-h">Buat pengguna</h2>
+  <p class="help">Kata sandi sementara sekali pakai dibuat otomatis dan hanya ditampilkan satu kali. Pengguna wajib menggantinya saat pertama kali masuk.</p>
   <form method="post" action="/admin/users" class="row">
     <input type="hidden" name="csrf_token" value="{{ csrf }}">
-    <div class="field"><label for="nu">Username</label>
+    <div class="field"><label for="nu">Nama pengguna</label>
       <input id="nu" name="username" value="{{ form_username }}" required maxlength="32" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
-    <div class="field"><label for="nr">Role</label>
+    <div class="field"><label for="nr">Peran</label>
       <select id="nr" name="role" required>{% for r in roles %}<option value="{{ r }}" {{ 'selected' if r == 'engineer' }}>{{ r }}</option>{% endfor %}</select></div>
-    <button class="btn btn-primary" type="submit">Create user</button>
+    <button class="btn btn-primary" type="submit">Buat pengguna</button>
   </form>
 </section>
 
-<div class="table-wrap" tabindex="0" role="region" aria-label="Users table">
+<div class="table-wrap" tabindex="0" role="region" aria-label="Tabel pengguna">
 <table>
-  <caption class="visually-hidden">All users</caption>
-  <thead><tr><th scope="col">Username</th><th scope="col">Role</th><th scope="col">State</th><th scope="col">Last sign-in (UTC)</th><th scope="col">Actions</th></tr></thead>
+  <caption class="visually-hidden">Semua pengguna</caption>
+  <thead><tr><th scope="col">Nama pengguna</th><th scope="col">Peran</th><th scope="col">Kondisi</th><th scope="col">Masuk terakhir (UTC)</th><th scope="col">Tindakan</th></tr></thead>
   <tbody>
   {% for u in users %}
     <tr>
       <th scope="row">{{ u.username }}</th><td>{{ u.role }}</td>
-      <td>{% if not u.is_active %}Disabled{% elif is_locked(u) %}Locked{% else %}Active{% endif %}{% if u.must_change_password %} · must change password{% endif %}</td>
-      <td>{{ u.last_login_at or 'never' }}</td>
+      <td>{% if not u.is_active %}Nonaktif{% elif is_locked(u) %}Terkunci{% else %}Aktif{% endif %}{% if u.must_change_password %} · wajib ganti kata sandi{% endif %}</td>
+      <td>{{ u.last_login_at or 'belum pernah' }}</td>
       <td class="actions">
-        {% for act, label in (('disable','Disable') if u.is_active else ('enable','Enable'), ('reset','Reset password'), ('unlock','Unlock')) %}
+        {% for act, label in (('disable','Nonaktifkan') if u.is_active else ('enable','Aktifkan'), ('reset','Reset kata sandi'), ('unlock','Buka kunci')) %}
         {% if act != 'unlock' or is_locked(u) %}
         <form method="post" action="/admin/users/{{ u.id }}/{{ act }}" class="inline">
           <input type="hidden" name="csrf_token" value="{{ csrf }}">

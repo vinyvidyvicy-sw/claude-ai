@@ -11,8 +11,8 @@ from ..security import new_token, tokens_equal, verify_password
 
 router = APIRouter()
 
-GENERIC_FAILURE = ("Sign-in failed. Check your username and password. "
-                   "If you have tried several times, your account may be locked; contact an administrator.")
+GENERIC_FAILURE = ("Gagal masuk. Periksa nama pengguna dan kata sandi Anda. "
+                   "Jika sudah mencoba beberapa kali, akun Anda mungkin terkunci; hubungi administrator.")
 
 
 def _cookie_args(request: Request) -> dict:
@@ -24,7 +24,7 @@ def _cookie_args(request: Request) -> dict:
 def login_form(request: Request, next: str = "/", expired: int = 0):
     token = new_token()
     resp = render(request, "login.html", login_csrf=token, next_url=safe_next(next),
-                  notice="Your session expired. Please sign in again." if expired else None)
+                  notice="Sesi Anda telah berakhir. Silakan masuk kembali." if expired else None)
     resp.set_cookie(cookie_name(request, LOGIN_CSRF_COOKIE_BASE), token, **_cookie_args(request))
     return resp
 
@@ -37,8 +37,8 @@ async def login_submit(request: Request):
     cookie_tok = request.cookies.get(cookie_name(request, LOGIN_CSRF_COOKIE_BASE), "")
     sent = form.get("csrf_token")
     if not cookie_tok or not isinstance(sent, str) or not tokens_equal(sent, cookie_tok):
-        return render(request, "error.html", status_code=403, code=403, title="Request rejected",
-                      message="The sign-in form expired. Reload the page and try again.")
+        return render(request, "error.html", status_code=403, code=403, title="Permintaan ditolak",
+                      message="Formulir masuk sudah kedaluwarsa. Muat ulang halaman lalu coba lagi.")
     username = str(form.get("username", ""))[:64].strip()
     password = str(form.get("password", ""))
     next_url = safe_next(str(form.get("next", "/")))
@@ -90,11 +90,11 @@ async def password_submit(request: Request, form=Depends(csrf_form), p: Principa
         user = users.get(c, p.user_id)
         ok, _ = verify_password(user["password_hash"], current)
         if not ok:
-            errors.append("Your current password is incorrect.")
+            errors.append("Kata sandi Anda saat ini salah.")
         if new != again:
-            errors.append("The new passwords do not match.")
+            errors.append("Kata sandi baru tidak sama.")
         if new == current:
-            errors.append("Choose a password different from the current one.")
+            errors.append("Pilih kata sandi yang berbeda dari yang sekarang.")
         if not errors:
             try:
                 users.set_password(c, st.settings, p.user_id, new, must_change=False)
@@ -105,7 +105,7 @@ async def password_submit(request: Request, form=Depends(csrf_form), p: Principa
                          result="failure", ip=p.ip)
         else:
             sessions.destroy_for_user(c, p.user_id, except_token=session_token(request))
-            sessions.set_flash(c, session_token(request), "Password changed.")
+            sessions.set_flash(c, session_token(request), "Kata sandi berhasil diubah.")
             audit.record(c, actor=p.username, actor_role=p.role, action="auth.password_change",
                          result="success", ip=p.ip)
     if errors:

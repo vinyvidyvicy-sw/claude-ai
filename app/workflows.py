@@ -19,7 +19,7 @@ import yaml
 from .inventory import Inventory
 from .redact import is_secret_name
 
-ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi"}
+ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi", "sparkles", "bulb"}
 PARAM_TYPES = {"string", "int", "bool", "enum", "ip", "cidr", "hostname", "device"}
 RISKS = ("low", "medium", "high")
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,40}$")
@@ -107,10 +107,20 @@ class Platform:
     launcher: bool = False  # tile opens an external tool (URL from inventory.yaml `launchers:`) instead of workflows
 
 
+@dataclass(frozen=True)
+class InnovationItem:
+    """An entry under the Inovasi menu. Opens an external page; its https URL is in inventory.yaml `launchers:`."""
+    id: str
+    title: str
+    summary: str
+    icon: str = "bulb"
+
+
 @dataclass
 class WorkflowCatalog:
     platforms: dict[str, Platform] = field(default_factory=dict)
     workflows: dict[str, Workflow] = field(default_factory=dict)
+    innovation: dict[str, InnovationItem] = field(default_factory=dict)
 
     def for_platform(self, platform_id: str) -> list[Workflow]:
         return [w for w in self.workflows.values() if w.platform == platform_id]
@@ -143,6 +153,21 @@ def load(path: Path) -> WorkflowCatalog:
             launcher=bool(p.get("launcher", False)),
             icon=str(p.get("icon", "")),
         )
+
+    for i, it in enumerate(raw.get("innovation") or []):
+        try:
+            item = InnovationItem(id=str(it["id"]), title=str(it["title"]), summary=str(it.get("summary", "")),
+                                  icon=str(it.get("icon", "bulb")))
+        except (KeyError, TypeError):
+            problems.append(f"innovation[{i}]: id and title are required")
+            continue
+        if not ID_RE.match(item.id):
+            problems.append(f"innovation[{i}]: id must match {ID_RE.pattern}")
+        if item.icon not in ICONS:
+            problems.append(f"innovation[{i}]: unknown icon {item.icon!r}")
+        if item.id in catalog.innovation or item.id in catalog.platforms:
+            problems.append(f"innovation[{i}]: duplicate id {item.id!r}")
+        catalog.innovation[item.id] = item
 
     for i, w in enumerate(raw.get("workflows") or []):
         where = f"workflows[{i}] ({w.get('id', '?') if isinstance(w, dict) else '?'})"
@@ -301,7 +326,7 @@ def validate_params(
             continue
         if value in (None, ""):
             if p.required:
-                errors[p.name] = "This field is required."
+                errors[p.name] = "Kolom ini wajib diisi."
             elif p.default is not None:
                 clean[p.name] = p.default
             continue
@@ -314,54 +339,54 @@ def validate_params(
 
 def _validate_one(p: Param, value: str, wf: Workflow, inventory: Inventory) -> Any:
     if CONTROL_RE.search(value):
-        raise ValueError("Control characters are not allowed.")
+        raise ValueError("Karakter kontrol tidak diperbolehkan.")
     if len(value) > p.max_length:
-        raise ValueError(f"Use at most {p.max_length} characters.")
+        raise ValueError(f"Gunakan paling banyak {p.max_length} karakter.")
     if len(value) < p.min_length:
-        raise ValueError(f"Use at least {p.min_length} characters.")
+        raise ValueError(f"Gunakan paling sedikit {p.min_length} karakter.")
     if p.type == "string":
         if p.pattern and not re.fullmatch(p.pattern, value):
-            raise ValueError(p.pattern_hint or "Value is not in the expected format.")
+            raise ValueError(p.pattern_hint or "Nilai tidak sesuai format yang diharapkan.")
         return value
     if p.type == "int":
         if not re.fullmatch(r"-?\d{1,12}", value):
-            raise ValueError("Enter a whole number.")
+            raise ValueError("Masukkan bilangan bulat.")
         n = int(value)
         if p.min is not None and n < p.min:
-            raise ValueError(f"Must be at least {p.min}.")
+            raise ValueError(f"Harus minimal {p.min}.")
         if p.max is not None and n > p.max:
-            raise ValueError(f"Must be at most {p.max}.")
+            raise ValueError(f"Harus maksimal {p.max}.")
         return n
     if p.type == "enum":
         if value not in {c[0] for c in p.choices}:
-            raise ValueError("Choose one of the listed options.")
+            raise ValueError("Pilih salah satu opsi yang tersedia.")
         return value
     if p.type == "ip":
         try:
             addr = ipaddress.ip_address(value)
         except ValueError:
-            raise ValueError("Enter a valid IP address.") from None
+            raise ValueError("Masukkan alamat IP yang valid.") from None
         if p.ip_version and addr.version != p.ip_version:
-            raise ValueError(f"Enter an IPv{p.ip_version} address.")
+            raise ValueError(f"Masukkan alamat IPv{p.ip_version}.")
         return str(addr)
     if p.type == "cidr":
         try:
             net = ipaddress.ip_network(value, strict=True)
         except ValueError:
-            raise ValueError("Enter a valid network in CIDR notation, e.g. 192.0.2.0/24 (host bits must be zero).") from None
+            raise ValueError("Masukkan jaringan dengan notasi CIDR yang valid, mis. 192.0.2.0/24 (bit host harus nol).") from None
         if p.ip_version and net.version != p.ip_version:
-            raise ValueError(f"Enter an IPv{p.ip_version} network.")
+            raise ValueError(f"Masukkan jaringan IPv{p.ip_version}.")
         return str(net)
     if p.type == "hostname":
         if not HOSTNAME_RE.match(value):
-            raise ValueError("Enter a valid hostname.")
+            raise ValueError("Masukkan hostname yang valid.")
         return value
     if p.type == "device":
         dev = inventory.get(value)
         if dev is None or dev.platform != wf.platform:
-            raise ValueError("Choose a device from the inventory.")
+            raise ValueError("Pilih perangkat dari inventaris.")
         return value
-    raise ValueError("Unsupported parameter type.")  # pragma: no cover
+    raise ValueError("Tipe parameter tidak didukung.")  # pragma: no cover
 
 
 # ----------------------------------------------------------------------------- planning
@@ -407,8 +432,8 @@ def build_plan(wf: Workflow, values: dict[str, Any], inventory: Inventory) -> di
         "steps": steps,
         "writes": sum(1 for s in steps if s["write"]),
         "dispatch": {"backend": d.backend, "job": d.job, "defined": d.defined, "payload": payload},
-        "note": "The portal does not change devices. On confirmation this request is handed to the automation "
-                "backend, which performs the change. This preview is built from your inputs only.",
+        "note": "Portal tidak mengubah perangkat. Setelah dikonfirmasi, permintaan ini diteruskan ke backend "
+                "otomasi yang melakukan perubahan. Pratinjau ini dibuat hanya dari masukan Anda.",
     }
 
 

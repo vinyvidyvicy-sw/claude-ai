@@ -1,225 +1,236 @@
-# Workflow catalogue. Add workflows here; no code changes needed.
+# Katalog workflow. Tambahkan workflow di sini; tidak perlu mengubah kode.
 #
-# This portal is a FRONT END. It never connects to devices and holds no device credentials.
-# Each workflow's `dispatch` block names the automation backend and the job that performs the
-# change after an engineer previews and confirms the request:
-#     dispatch: {backend: <registered backend name>, job: <job id in that backend>, payload: {...}}
-#   * `backend`/`job` = TODO means the hand-off is not defined yet; such a workflow refuses to run live.
-#   * `payload` is optional; when omitted, all validated parameters are sent as-is (typed).
-#     When given, "{name}" placeholders are filled from the parameters.
-# Other rules (a bad file stops the portal with a list of problems):
-#   * parameters never hold secrets (names like password/token/secret/community are rejected);
-#   * `plan.steps` are human-readable preview lines only; they are not executed by the portal.
+# Portal ini adalah FRONT END. Portal tidak pernah terhubung ke perangkat dan tidak menyimpan kredensial perangkat.
+# Blok `dispatch` pada tiap workflow menyebut backend otomasi dan job yang melakukan perubahan setelah engineer
+# melihat pratinjau dan mengonfirmasi:
+#     dispatch: {backend: <nama backend terdaftar>, job: <id job di backend itu>, payload: {...}}
+#   * `backend`/`job` = TODO berarti penyerahan belum ditentukan; workflow itu menolak berjalan secara live.
+#   * `payload` opsional; jika dihilangkan, semua parameter yang valid dikirim apa adanya (bertipe).
+#     Jika diisi, placeholder "{nama}" diisi dari parameter.
+# Aturan lain (file yang salah menghentikan portal saat start dan menampilkan daftar masalah):
+#   * parameter tidak boleh berisi rahasia (nama seperti password/token/secret/community ditolak);
+#   * `plan.steps` hanya baris pratinjau yang mudah dibaca; portal tidak menjalankannya.
 #
-# EVERY workflow below is an ASSUMPTION: the real workflow list has not been provided.
+# SEMUA workflow di bawah adalah ASUMSI (ASSUMPTION): daftar workflow yang sebenarnya belum diberikan.
 schema_version: 1
 
 platforms:
   ise:
     icon: shield
     name: Cisco ISE
-    summary: Identity and policy services.
-    interface_note: "Backend will likely use (UNCONFIRMED): ISE ERS / OpenAPI."
-    version_note: "ISE version: TODO."
+    summary: Layanan identitas dan kebijakan.
+    interface_note: "Backend kemungkinan memakai (BELUM DIKONFIRMASI): ISE ERS / OpenAPI."
+    version_note: "Versi ISE: TODO."
   sda:
     icon: fabric
     name: Cisco SDA (Catalyst Center)
-    summary: Software-defined access fabric, managed through Catalyst Center.
-    interface_note: "Backend will likely use (UNCONFIRMED): Catalyst Center REST API."
-    version_note: "Catalyst Center version: TODO."
+    summary: Fabric akses berbasis software, dikelola melalui Catalyst Center.
+    interface_note: "Backend kemungkinan memakai (BELUM DIKONFIRMASI): Catalyst Center REST API."
+    version_note: "Versi Catalyst Center: TODO."
   aci:
     icon: cube
     name: Cisco ACI (APIC)
-    summary: Application-centric fabric, managed through APIC.
-    interface_note: "Backend will likely use (UNCONFIRMED): APIC REST API."
-    version_note: "APIC version: TODO."
+    summary: Fabric berorientasi aplikasi, dikelola melalui APIC.
+    interface_note: "Backend kemungkinan memakai (BELUM DIKONFIRMASI): APIC REST API."
+    version_note: "Versi APIC: TODO."
   nxos:
     icon: switch-dc
     name: Cisco NX-OS switches
-    summary: Nexus data-centre switches.
-    interface_note: "Backend will likely use (UNCONFIRMED): NX-API or RESTCONF."
-    version_note: "NX-OS version: TODO."
+    summary: Switch Nexus untuk data center.
+    interface_note: "Backend kemungkinan memakai (BELUM DIKONFIRMASI): NX-API atau RESTCONF."
+    version_note: "Versi NX-OS: TODO."
   catalyst:
     icon: switch-campus
     name: Cisco Catalyst switches (IOS-XE)
-    summary: Catalyst campus switches running IOS-XE.
-    interface_note: "Backend will likely use (UNCONFIRMED): RESTCONF or NETCONF."
-    version_note: "IOS-XE version: TODO."
+    summary: Switch campus Catalyst yang menjalankan IOS-XE.
+    interface_note: "Backend kemungkinan memakai (BELUM DIKONFIRMASI): RESTCONF atau NETCONF."
+    version_note: "Versi IOS-XE: TODO."
   splunk:
     icon: search-shield
     name: Splunk Enterprise Security
-    summary: Security monitoring on Splunk Enterprise Security.
-    interface_note: "Backend will likely use (UNCONFIRMED): Splunk REST API."
-    version_note: "Splunk / ES version: TODO."
+    summary: Pemantauan keamanan pada Splunk Enterprise Security.
+    interface_note: "Backend kemungkinan memakai (BELUM DIKONFIRMASI): Splunk REST API."
+    version_note: "Versi Splunk / ES: TODO."
   esxi:
     icon: server-stack
     name: VMware ESXi management
-    summary: ESXi host management. TODO - confirm whether this means standalone ESXi hosts or vCenter.
-    interface_note: "Backend will likely use (UNCONFIRMED): vSphere API."
-    version_note: "ESXi / vCenter version: TODO."
-
+    summary: Manajemen host ESXi. TODO - konfirmasi apakah yang dimaksud host ESXi mandiri atau vCenter.
+    interface_note: "Backend kemungkinan memakai (BELUM DIKONFIRMASI): vSphere API."
+    version_note: "Versi ESXi / vCenter: TODO."
   ekahau:
     icon: wifi
     name: Ekahau Design
-    summary: Wi-Fi site survey and design. Opens the Ekahau environment hosted on VMware.
-    launcher: true     # tile opens an external tool; its https URL is set in config/inventory.yaml under `launchers:`
-    interface_note: "The portal only opens Ekahau; it does not pass credentials. Ekahau's own sign-in applies. TODO: Ekahau product/version and how it is reached (web, remote desktop gateway, other)."
-    version_note: "Ekahau product and version: TODO."
+    summary: Survei dan desain Wi-Fi. Membuka lingkungan Ekahau yang di-host di VMware.
+    launcher: true     # tile membuka alat eksternal; alamat https-nya diatur di config/inventory.yaml pada `launchers:`
+    interface_note: "Portal hanya membuka Ekahau; tidak meneruskan kredensial. Login bawaan Ekahau berlaku. TODO: produk/versi Ekahau dan cara aksesnya (web, gateway remote desktop, lainnya)."
+    version_note: "Produk dan versi Ekahau: TODO."
+
+# Menu "Inovasi": tiap item membuka halaman eksternal. Alamat https-nya diatur di config/inventory.yaml
+# pada `launchers:` dengan kunci yang sama dengan `id` di bawah.
+innovation:
+  - id: metrodata-ai-use-case
+    title: Metrodata AI Use Case
+    icon: sparkles
+    summary: "Kumpulan contoh penerapan AI (use case) Metrodata. TODO: konten dan alamat halaman belum diberikan."
+  - id: splunk-innovation
+    title: Splunk Innovation
+    icon: bulb
+    summary: "Inovasi dan use case berbasis Splunk. TODO: konten dan alamat halaman belum diberikan."
 
 workflows:
   - id: ise-create-endpoint-group
     platform: ise
-    title: Create endpoint identity group
-    description: Create an endpoint identity group on an ISE node.
+    title: Buat endpoint identity group
+    description: Membuat endpoint identity group pada node ISE.
     risk: low
     assumption: true
     notes:
-      - "ASSUMPTION: sample workflow and parameters only. Backend and job (dispatch) are TODO until the ISE API and version are confirmed."
+      - "ASUMSI: hanya contoh workflow dan parameter. Backend dan job (dispatch) masih TODO sampai API dan versi ISE dikonfirmasi."
     parameters:
-      - {name: device, label: ISE node, type: device, help: Choose the ISE node from the inventory.}
-      - {name: group_name, label: Group name, type: string, pattern: '[A-Za-z0-9][A-Za-z0-9_ .-]{1,63}', pattern_hint: "2-64 characters: letters, digits, space, '.', '_' or '-'.", max_length: 64}
-      - {name: description, label: Description, type: string, required: false, max_length: 200}
+      - {name: device, label: Node ISE, type: device, help: Pilih node ISE dari inventaris.}
+      - {name: group_name, label: Nama grup, type: string, pattern: '[A-Za-z0-9][A-Za-z0-9_ .-]{1,63}', pattern_hint: "2-64 karakter: huruf, angka, spasi, '.', '_' atau '-'.", max_length: 64}
+      - {name: description, label: Deskripsi, type: string, required: false, max_length: 200}
     plan:
-      summary: "Create endpoint identity group '{group_name}' on {device}"
+      summary: "Buat endpoint identity group '{group_name}' pada {device}"
       steps:
         - id: create-group
-          description: "Create endpoint identity group '{group_name}' (description: '{description}')"
+          description: "Buat endpoint identity group '{group_name}' (deskripsi: '{description}')"
           write: true
     dispatch:
-      backend: TODO   # name of the registered automation backend
-      job: TODO       # job/playbook/template id inside that backend
+      backend: TODO   # nama backend otomasi yang terdaftar
+      job: TODO       # id job/playbook/template di dalam backend itu
 
   - id: sda-create-virtual-network
     platform: sda
-    title: Create virtual network
-    description: Create a virtual network (VN) in the SDA fabric.
+    title: Buat virtual network
+    description: Membuat virtual network (VN) pada fabric SDA.
     risk: medium
     assumption: true
     notes:
-      - "ASSUMPTION: sample workflow and parameters only. Backend and job (dispatch) are TODO until the Catalyst Center API and version are confirmed."
+      - "ASUMSI: hanya contoh workflow dan parameter. Backend dan job (dispatch) masih TODO sampai API dan versi Catalyst Center dikonfirmasi."
     parameters:
       - {name: device, label: Catalyst Center, type: device}
-      - {name: vn_name, label: Virtual network name, type: string, pattern: '[A-Za-z][A-Za-z0-9_-]{1,31}', pattern_hint: "2-32 characters: start with a letter; letters, digits, '_' or '-'.", max_length: 32}
+      - {name: vn_name, label: Nama virtual network, type: string, pattern: '[A-Za-z][A-Za-z0-9_-]{1,31}', pattern_hint: "2-32 karakter: diawali huruf; huruf, angka, '_' atau '-'.", max_length: 32}
     plan:
-      summary: "Create virtual network '{vn_name}' via {device}"
+      summary: "Buat virtual network '{vn_name}' melalui {device}"
       steps:
         - id: create-vn
-          description: "Create virtual network '{vn_name}'"
+          description: "Buat virtual network '{vn_name}'"
           write: true
     dispatch:
-      backend: TODO   # name of the registered automation backend
-      job: TODO       # job/playbook/template id inside that backend
+      backend: TODO
+      job: TODO
 
   - id: aci-create-tenant
     platform: aci
-    title: Create tenant
-    description: Create a tenant on an APIC cluster.
+    title: Buat tenant
+    description: Membuat tenant pada klaster APIC.
     risk: medium
     assumption: true
     notes:
-      - "ASSUMPTION: sample workflow and parameters only. Backend and job (dispatch) are TODO until the APIC API and version are confirmed."
+      - "ASUMSI: hanya contoh workflow dan parameter. Backend dan job (dispatch) masih TODO sampai API dan versi APIC dikonfirmasi."
     parameters:
       - {name: device, label: APIC, type: device}
-      - {name: tenant_name, label: Tenant name, type: string, pattern: '[A-Za-z0-9][A-Za-z0-9_.-]{0,63}', pattern_hint: "1-64 characters: letters, digits, '_', '.' or '-'.", max_length: 64}
-      - {name: description, label: Description, type: string, required: false, max_length: 128}
+      - {name: tenant_name, label: Nama tenant, type: string, pattern: '[A-Za-z0-9][A-Za-z0-9_.-]{0,63}', pattern_hint: "1-64 karakter: huruf, angka, '_', '.' atau '-'.", max_length: 64}
+      - {name: description, label: Deskripsi, type: string, required: false, max_length: 128}
     plan:
-      summary: "Create tenant '{tenant_name}' on {device}"
+      summary: "Buat tenant '{tenant_name}' pada {device}"
       steps:
         - id: create-tenant
-          description: "Create tenant '{tenant_name}'"
+          description: "Buat tenant '{tenant_name}'"
           write: true
     dispatch:
-      backend: TODO   # name of the registered automation backend
-      job: TODO       # job/playbook/template id inside that backend
+      backend: TODO
+      job: TODO
 
   - id: nxos-create-vlan
     platform: nxos
-    title: Create VLAN
-    description: Create a VLAN on an NX-OS switch.
+    title: Buat VLAN
+    description: Membuat VLAN pada switch NX-OS.
     risk: low
     assumption: true
     notes:
-      - "ASSUMPTION: sample workflow. Reserved VLAN ranges for the target NX-OS version are TODO; the 2-3967 range below is a placeholder. Backend and job (dispatch) are TODO until NX-API vs RESTCONF is chosen."
+      - "ASUMSI: contoh workflow. Rentang VLAN yang dicadangkan untuk versi NX-OS target masih TODO; rentang 2-3967 di bawah hanya placeholder. Backend dan job (dispatch) masih TODO sampai NX-API atau RESTCONF dipilih."
     parameters:
       - {name: device, label: Switch, type: device}
-      - {name: vlan_id, label: VLAN ID, type: int, min: 2, max: 3967, help: "Placeholder range; TODO confirm reserved VLANs."}
-      - {name: vlan_name, label: VLAN name, type: string, pattern: '[A-Za-z0-9_-]{1,32}', pattern_hint: "1-32 characters: letters, digits, '_' or '-'.", max_length: 32}
+      - {name: vlan_id, label: ID VLAN, type: int, min: 2, max: 3967, help: "Rentang placeholder; TODO konfirmasi VLAN yang dicadangkan."}
+      - {name: vlan_name, label: Nama VLAN, type: string, pattern: '[A-Za-z0-9_-]{1,32}', pattern_hint: "1-32 karakter: huruf, angka, '_' atau '-'.", max_length: 32}
     plan:
-      summary: "Create VLAN {vlan_id} ('{vlan_name}') on {device}"
+      summary: "Buat VLAN {vlan_id} ('{vlan_name}') pada {device}"
       steps:
         - id: create-vlan
-          description: "Create VLAN {vlan_id} named '{vlan_name}'"
+          description: "Buat VLAN {vlan_id} dengan nama '{vlan_name}'"
           write: true
     dispatch:
-      backend: TODO   # name of the registered automation backend
-      job: TODO       # job/playbook/template id inside that backend
+      backend: TODO
+      job: TODO
 
   - id: catalyst-set-access-port
     platform: catalyst
-    title: Configure access port
-    description: Set the access VLAN and description on a Catalyst switch interface.
+    title: Konfigurasi access port
+    description: Mengatur access VLAN dan deskripsi pada interface switch Catalyst.
     risk: medium
     assumption: true
     notes:
-      - "ASSUMPTION: sample workflow. The interface-name pattern is a placeholder. Backend and job (dispatch) are TODO until RESTCONF vs NETCONF is chosen."
+      - "ASUMSI: contoh workflow. Pola nama interface hanya placeholder. Backend dan job (dispatch) masih TODO sampai RESTCONF atau NETCONF dipilih."
     parameters:
       - {name: device, label: Switch, type: device}
-      - {name: interface, label: Interface, type: string, pattern: '[A-Za-z]+[0-9]+(/[0-9]+){0,3}', pattern_hint: "Example: GigabitEthernet1/0/1 (placeholder pattern).", max_length: 40}
+      - {name: interface, label: Interface, type: string, pattern: '[A-Za-z]+[0-9]+(/[0-9]+){0,3}', pattern_hint: "Contoh: GigabitEthernet1/0/1 (pola placeholder).", max_length: 40}
       - {name: vlan_id, label: Access VLAN, type: int, min: 1, max: 4094}
-      - {name: port_description, label: Port description, type: string, required: false, pattern: '[ -~]{0,80}', pattern_hint: "Printable ASCII, up to 80 characters.", max_length: 80}
+      - {name: port_description, label: Deskripsi port, type: string, required: false, pattern: '[ -~]{0,80}', pattern_hint: "ASCII yang dapat dicetak, hingga 80 karakter.", max_length: 80}
     plan:
-      summary: "Set {interface} on {device} to access VLAN {vlan_id}"
+      summary: "Atur {interface} pada {device} ke access VLAN {vlan_id}"
       steps:
         - id: set-port
-          description: "On {interface}: access VLAN {vlan_id}, description '{port_description}'"
+          description: "Pada {interface}: access VLAN {vlan_id}, deskripsi '{port_description}'"
           write: true
     dispatch:
-      backend: TODO   # name of the registered automation backend
-      job: TODO       # job/playbook/template id inside that backend
+      backend: TODO
+      job: TODO
 
   - id: splunk-toggle-correlation-search
     platform: splunk
-    title: Enable or disable a correlation search
-    description: Enable or disable a named correlation search in Splunk Enterprise Security.
+    title: Aktifkan atau nonaktifkan correlation search
+    description: Mengaktifkan atau menonaktifkan correlation search tertentu di Splunk Enterprise Security.
     risk: high
     assumption: true
     notes:
-      - "ASSUMPTION: sample workflow. Disabling detections reduces monitoring coverage; consider requiring a second approver (TODO). Backend and job (dispatch) are TODO until the Splunk/ES version is confirmed."
+      - "ASUMSI: contoh workflow. Menonaktifkan deteksi mengurangi cakupan pemantauan; pertimbangkan persetujuan dari orang kedua (TODO). Backend dan job (dispatch) masih TODO sampai versi Splunk/ES dikonfirmasi."
     parameters:
-      - {name: device, label: Splunk search head, type: device}
-      - {name: search_name, label: Correlation search name, type: string, pattern: '[ -~]{3,150}', pattern_hint: "Printable ASCII, 3-150 characters.", max_length: 150}
+      - {name: device, label: Search head Splunk, type: device}
+      - {name: search_name, label: Nama correlation search, type: string, pattern: '[ -~]{3,150}', pattern_hint: "ASCII yang dapat dicetak, 3-150 karakter.", max_length: 150}
       - name: state
-        label: Desired state
+        label: Status yang diinginkan
         type: enum
-        choices: [{value: enabled, label: Enabled}, {value: disabled, label: Disabled}]
+        choices: [{value: enabled, label: Aktif}, {value: disabled, label: Nonaktif}]
     plan:
-      summary: "Set correlation search '{search_name}' to {state} on {device}"
+      summary: "Atur correlation search '{search_name}' menjadi {state} pada {device}"
       steps:
         - id: toggle-search
-          description: "Set correlation search '{search_name}' to {state}"
+          description: "Atur correlation search '{search_name}' menjadi {state}"
           write: true
     dispatch:
-      backend: TODO   # name of the registered automation backend
-      job: TODO       # job/playbook/template id inside that backend
+      backend: TODO
+      job: TODO
 
   - id: esxi-enter-maintenance-mode
     platform: esxi
-    title: Enter maintenance mode
-    description: Put an ESXi host into maintenance mode.
+    title: Masuk maintenance mode
+    description: Memasukkan host ESXi ke maintenance mode.
     risk: high
     assumption: true
     notes:
-      - "ASSUMPTION: sample workflow. Applicability to standalone ESXi vs vCenter is TODO. Backend and job (dispatch) are TODO until the vSphere API and version are confirmed."
+      - "ASUMSI: contoh workflow. Penerapan untuk ESXi mandiri vs vCenter masih TODO. Backend dan job (dispatch) masih TODO sampai API dan versi vSphere dikonfirmasi."
     parameters:
-      - {name: device, label: ESXi host, type: device}
-      - {name: timeout_seconds, label: Timeout (seconds), type: int, min: 60, max: 7200, default: 600}
-      - {name: evacuate_powered_off_vms, label: Also evacuate powered-off VMs, type: bool, required: false}
+      - {name: device, label: Host ESXi, type: device}
+      - {name: timeout_seconds, label: Batas waktu (detik), type: int, min: 60, max: 7200, default: 600}
+      - {name: evacuate_powered_off_vms, label: Evakuasi juga VM yang mati, type: bool, required: false}
     plan:
-      summary: "Enter maintenance mode on {device} (timeout {timeout_seconds}s)"
+      summary: "Masuk maintenance mode pada {device} (batas waktu {timeout_seconds} detik)"
       steps:
         - id: enter-maintenance
-          description: "Enter maintenance mode on {device}, timeout {timeout_seconds}s, evacuate powered-off VMs: {evacuate_powered_off_vms}"
+          description: "Masuk maintenance mode pada {device}, batas waktu {timeout_seconds} detik, evakuasi VM yang mati: {evacuate_powered_off_vms}"
           write: true
     dispatch:
-      backend: TODO   # name of the registered automation backend
-      job: TODO       # job/playbook/template id inside that backend
+      backend: TODO
+      job: TODO

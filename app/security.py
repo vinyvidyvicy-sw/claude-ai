@@ -37,13 +37,13 @@ def verify_password(stored_hash: str | None, password: str) -> tuple[bool, bool]
 def password_problems(password: str, username: str, min_length: int) -> list[str]:
     problems = []
     if len(password) < min_length:
-        problems.append(f"Use at least {min_length} characters.")
+        problems.append(f"Gunakan paling sedikit {min_length} karakter.")
     if len(password) > MAX_PASSWORD_LENGTH:
-        problems.append(f"Use at most {MAX_PASSWORD_LENGTH} characters.")
+        problems.append(f"Gunakan paling banyak {MAX_PASSWORD_LENGTH} karakter.")
     if username and username.lower() in password.lower():
-        problems.append("The password must not contain the username.")
+        problems.append("Kata sandi tidak boleh memuat nama pengguna.")
     if password and len(set(password)) < 5:
-        problems.append("Use a less repetitive password.")
+        problems.append("Gunakan kata sandi yang tidak terlalu berulang.")
     return problems
 
 

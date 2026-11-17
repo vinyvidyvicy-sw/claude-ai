@@ -80,7 +80,7 @@ input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--co
 .has-error input, .has-error select { border: 2px solid var(--color-danger); }
 .help { color: var(--color-muted); font-size: 0.9rem; margin: 0.15rem 0 0.4rem; }
 .error { color: var(--color-danger); font-weight: 600; margin: 0.15rem 0 0.4rem; }
-.error::before { content: "Error: "; }
+.error::before { content: "Kesalahan: "; }
 .row { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: flex-end; }
 .row .field { margin-bottom: 0; }
 form.inline { display: inline-block; margin: 0 0.25rem 0.25rem 0; }
@@ -137,3 +137,15 @@ tbody th { font-weight: 600; }
 h1.with-icon { display: flex; align-items: center; gap: 0.75rem; }
 h1.with-icon .icon { width: 3.25rem; height: 3.25rem; }
 @media (forced-colors: active) { .icon { border: 1px solid CanvasText; color: CanvasText; } }
+
+/* Inovasi dropdown (native <details>, keyboard accessible, no script) */
+.nav-menu { position: relative; }
+.nav-menu summary { list-style: none; cursor: pointer; padding: 0.4rem 0.25rem; border-bottom: 3px solid transparent; display: inline-flex; align-items: center; gap: 0.35rem; }
+.nav-menu summary::-webkit-details-marker { display: none; }
+.nav-menu summary::after { content: ""; border: solid currentColor; border-width: 0 2px 2px 0; padding: 3px; transform: rotate(45deg) translateY(-2px); }
+.nav-menu summary:hover { border-bottom-color: var(--color-border-soft); }
+.nav-menu summary[aria-current="page"] { border-bottom-color: var(--color-accent); font-weight: 600; }
+.nav-menu ul { position: absolute; z-index: 5; left: 0; top: 100%; min-width: 15rem; margin: 0.25rem 0 0; padding: 0.35rem; flex-direction: column; gap: 0; background: var(--color-bg); border: 1px solid var(--color-border-soft); border-radius: 0.4rem; box-shadow: 0 4px 14px rgb(0 0 0 / 14%); }
+.nav-menu ul a { display: block; padding: 0.5rem 0.75rem; border-bottom: 0; border-radius: 0.25rem; }
+.nav-menu ul a:hover, .nav-menu ul a[aria-current="page"] { background: var(--color-info-bg); }
+@media (max-width: 40rem) { .nav-menu ul { position: static; box-shadow: none; margin-left: 0.5rem; } }

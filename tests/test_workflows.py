@@ -87,10 +87,10 @@ def test_preview_then_confirm_flow(app):
     c = client_for(app)
     login(c, "bob", "staple battery horse")
     page = "/p/nxos/nxos-create-vlan"
-    assert "Preview changes" in c.get(page).text
+    assert "Pratinjau perubahan" in c.get(page).text
     # invalid input re-renders with errors, creates no run
     r = c.post(page + "/preview", data={**FORM, "vlan_id": "9999", "csrf_token": session_csrf(c, page)})
-    assert r.status_code == 400 and "Must be at most 3967." in r.text
+    assert r.status_code == 400 and "Harus maksimal 3967." in r.text
     with app.state.db.conn() as db:
         assert db.execute("SELECT COUNT(*) FROM runs").fetchone()[0] == 0
 
@@ -103,8 +103,8 @@ def test_preview_then_confirm_flow(app):
         assert (row["status"], row["mode"]) == ("previewed", "dry_run")  # nothing runs before confirm
         assert db.execute("SELECT COUNT(*) FROM run_log WHERE run_id=?", (run_id,)).fetchone()[0] == 0
     html = c.get(run_url).text
-    assert "Confirm (simulate)" in html and "Create VLAN 100" in html
-    assert "does not change devices" in html
+    assert "Konfirmasi (simulasi)" in html and "Buat VLAN 100" in html
+    assert "tidak mengubah perangkat" in html
 
     # another user cannot confirm
     other = client_for(app)
@@ -118,8 +118,8 @@ def test_preview_then_confirm_flow(app):
     assert r.status_code == 303
     with app.state.db.conn() as db:
         row = db.execute("SELECT * FROM runs WHERE id=?", (run_id,)).fetchone()
-        assert row["status"] == "succeeded" and "no request was sent" in row["result_summary"]
-        assert any("nothing was sent" in r[0] for r in db.execute("SELECT message FROM run_log WHERE run_id=?", (run_id,)))
+        assert row["status"] == "succeeded" and "tidak ada permintaan yang dikirim" in row["result_summary"]
+        assert any("tidak ada yang dikirim" in r[0] for r in db.execute("SELECT message FROM run_log WHERE run_id=?", (run_id,)))
         acts = [r[0] for r in db.execute("SELECT action FROM audit_log WHERE target='nxos-create-vlan' ORDER BY id")]
     assert acts == ["workflow.preview", "workflow.confirm", "workflow.confirm", "workflow.run"]  # 2nd = denied attempt by another user
     # second confirm is refused
@@ -145,7 +145,7 @@ def test_viewer_cannot_preview(app):
     c = client_for(app)
     login(c, "vera", "viewer viewer viewer1")
     page = "/p/nxos/nxos-create-vlan"
-    assert "read-only" in c.get(page).text
+    assert "hanya dapat melihat" in c.get(page).text
     assert c.post(page + "/preview", data={**FORM, "csrf_token": session_csrf(c, "/")}).status_code == 403
 
 
@@ -228,7 +228,7 @@ def test_live_mode_backend_failure_and_timeout(tmp_path):
         def poll(self, job_id): return JobStatus("running", [])
 
     for backend, env, expect in ((Failing(), {}, "backend said no"),
-                                 (Stuck(), {"PORTAL_BACKEND_TIMEOUT_SECONDS": "1"}, "timed out")):
+                                 (Stuck(), {"PORTAL_BACKEND_TIMEOUT_SECONDS": "1"}, "batas waktu")):
         a, c = _live_app(tmp_path / expect[:4], **env)
         runner.register_backend("fake", backend)
         try:
@@ -264,7 +264,7 @@ def test_ekahau_launcher_tile(app):
     login(c, "bob", "staple battery horse")
     # not configured: tile leads to a TODO page, launch does not leave the portal
     assert c.get("/launch/ekahau").headers["location"] == "/p/ekahau"
-    assert "not configured" in c.get("/p/ekahau").text
+    assert "belum dikonfigurasi" in c.get("/p/ekahau").text
     # configured: tile opens the launcher in a new tab and the launch is audited
     app.state.inventory._launchers["ekahau"] = "https://ekahau.example.invalid/design"
     html = c.get("/").text
@@ -314,3 +314,30 @@ def test_logos_shown_only_when_files_exist(app):
         assert "/static/img/logo-mii.svg" in html and "PT Mitra Integrasi Informatika" in html
     finally:
         f.unlink()
+
+
+def test_ui_is_indonesian_and_has_innovation_menu(app):
+    c = client_for(app)
+    login(c, "bob", "staple battery horse")
+    html = c.get("/").text
+    assert '<html lang="id">' in html and "Pilih platform" in html and "Keluar" in html
+    # Inovasi dropdown with both items
+    assert "Inovasi" in html and "/inovasi/metrodata-ai-use-case" in html and "/inovasi/splunk-innovation" in html
+    assert "Metrodata AI Use Case" in html and "Splunk Innovation" in html
+
+
+def test_innovation_pages_and_launch(app):
+    c = client_for(app)
+    login(c, "bob", "staple battery horse")
+    page = c.get("/inovasi/metrodata-ai-use-case")
+    assert page.status_code == 200 and "belum dikonfigurasi" in page.text
+    assert c.get("/launch/metrodata-ai-use-case").headers["location"] == "/inovasi/metrodata-ai-use-case"
+    app.state.inventory._launchers["splunk-innovation"] = "https://splunk-innovation.example.invalid/"
+    page = c.get("/inovasi/splunk-innovation")
+    assert 'href="/launch/splunk-innovation"' in page.text and 'target="_blank"' in page.text
+    r = c.get("/launch/splunk-innovation")
+    assert r.status_code == 303 and r.headers["location"] == "https://splunk-innovation.example.invalid/"
+    with app.state.db.conn() as db:
+        row = db.execute("SELECT actor, action, target FROM audit_log WHERE action='innovation.launch'").fetchone()
+    assert tuple(row) == ("bob", "innovation.launch", "splunk-innovation")
+    assert c.get("/inovasi/unknown").status_code == 404

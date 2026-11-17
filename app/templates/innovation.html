@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}{{ item.title }}{% endblock %}
+{% block content %}
+<nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dasbor</a> / Inovasi / <span aria-current="page">{{ item.title }}</span></nav>
+<h1 class="with-icon">{{ icon(item.icon, 34) }}<span>{{ item.title }}</span></h1>
+<p class="lead">{{ item.summary }}</p>
+{% if launch_url %}
+<p><a class="btn btn-primary" href="/launch/{{ item.id }}" target="_blank" rel="noopener noreferrer">Buka {{ item.title }}<span class="visually-hidden"> (dibuka di tab baru)</span></a></p>
+{% else %}
+<p class="todo"><strong>TODO:</strong> alamat untuk {{ item.title }} belum dikonfigurasi. Administrator menambahkannya di <code>config/inventory.yaml</code> pada bagian <code>launchers:</code> dengan kunci <code>{{ item.id }}</code> (lihat <code>config/inventory.example.yaml</code>) lalu memulai ulang portal.</p>
+{% endif %}
+{% endblock %}

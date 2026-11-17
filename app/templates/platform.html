@@ -2,20 +2,20 @@
 {% from "_icons.html" import icon %}
 {% block title %}{{ platform.name }}{% endblock %}
 {% block content %}
-<nav aria-label="Breadcrumb" class="crumbs"><a href="/">Dashboard</a> / <span aria-current="page">{{ platform.name }}</span></nav>
+<nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dasbor</a> / <span aria-current="page">{{ platform.name }}</span></nav>
 <h1 class="with-icon">{{ icon(platform.icon, 34) }}<span>{{ platform.name }}</span></h1>
 <p class="lead">{{ platform.summary }}</p>
 <p class="todo"><strong>TODO:</strong> {{ platform.version_note }} {{ platform.interface_note }}</p>
 
 {% if platform.launcher %}
-<h2>Open {{ platform.name }}</h2>
+<h2>Buka {{ platform.name }}</h2>
 {% if launch_url %}
-<p><a class="btn btn-primary" href="/launch/{{ platform.id }}" target="_blank" rel="noopener noreferrer">Open {{ platform.name }}<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+<p><a class="btn btn-primary" href="/launch/{{ platform.id }}" target="_blank" rel="noopener noreferrer">Buka {{ platform.name }}<span class="visually-hidden"> (dibuka di tab baru)</span></a></p>
 {% else %}
-<p class="todo"><strong>TODO:</strong> the address for {{ platform.name }} is not configured. An administrator adds it to <code>config/inventory.yaml</code> under <code>launchers:</code> (see <code>config/inventory.example.yaml</code>) and restarts the portal.</p>
+<p class="todo"><strong>TODO:</strong> alamat {{ platform.name }} belum dikonfigurasi. Administrator menambahkannya di <code>config/inventory.yaml</code> pada bagian <code>launchers:</code> (lihat <code>config/inventory.example.yaml</code>) lalu memulai ulang portal.</p>
 {% endif %}
 {% else %}
-<h2>Workflows</h2>
+<h2>Workflow</h2>
 {% if workflows %}
 <ul class="cards">
   {% for w in workflows %}
@@ -23,29 +23,29 @@
     <h3><a href="/p/{{ platform.id }}/{{ w.id }}">{{ w.title }}</a></h3>
     <p>{{ w.description }}</p>
     <p class="badges">
-      <span class="badge badge-risk-{{ w.risk }}">Risk: {{ w.risk }}</span>
-      {% if w.assumption %}<span class="badge badge-assume">ASSUMPTION</span>{% endif %}
+      <span class="badge badge-risk-{{ w.risk }}">Risiko: {{ risk_id[w.risk] }}</span>
+      {% if w.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}
     </p>
   </li>
   {% endfor %}
 </ul>
-{% else %}<p>No workflows are defined for this platform yet. Add one in <code>config/workflows.yaml</code>.</p>{% endif %}
-
+{% else %}<p>Belum ada workflow untuk platform ini. Tambahkan di <code>config/workflows.yaml</code>.</p>{% endif %}
 {% endif %}
+
 {% if not platform.launcher %}
-<h2>Devices and consoles</h2>
+<h2>Perangkat dan konsol</h2>
 {% if platform.console_note %}<p class="help">{{ platform.console_note }}</p>{% endif %}
 {% if devices %}
 <table>
-  <caption class="visually-hidden">Devices in the inventory for {{ platform.name }}</caption>
-  <thead><tr><th scope="col">Name</th><th scope="col">Management address</th><th scope="col">Native console</th></tr></thead>
+  <caption class="visually-hidden">Perangkat dalam inventaris untuk {{ platform.name }}</caption>
+  <thead><tr><th scope="col">Nama</th><th scope="col">Alamat manajemen</th><th scope="col">Konsol bawaan</th></tr></thead>
   <tbody>
   {% for d in devices %}
     <tr><th scope="row">{{ d.name }}</th><td>{{ d.address }}</td>
-        <td>{% if d.console_url %}<a href="{{ d.console_url }}" target="_blank" rel="noopener noreferrer">Open console<span class="visually-hidden"> for {{ d.name }} (opens in a new tab)</span></a>{% else %}<span class="meta">not set</span>{% endif %}</td></tr>
+        <td>{% if d.console_url %}<a href="{{ d.console_url }}" target="_blank" rel="noopener noreferrer">Buka konsol<span class="visually-hidden"> untuk {{ d.name }} (dibuka di tab baru)</span></a>{% else %}<span class="meta">belum diatur</span>{% endif %}</td></tr>
   {% endfor %}
   </tbody>
 </table>
-{% else %}<p>No devices in the inventory for this platform. See <code>config/inventory.example.yaml</code>.</p>{% endif %}
+{% else %}<p>Belum ada perangkat dalam inventaris untuk platform ini. Lihat <code>config/inventory.example.yaml</code>.</p>{% endif %}
 {% endif %}
 {% endblock %}

@@ -22,6 +22,8 @@ Engineer ──> Portal (form, validation, preview, approval, audit) ──> Aut
                          └───────── status + log mirrored back ─────────────┘
 ```
 
+**Language:** the portal interface is in Bahasa Indonesia (this documentation stays in English; audit action codes such as `workflow.preview` stay in English on purpose). The top menu has **Inovasi** with two items, *Metrodata AI Use Case* and *Splunk Innovation* (defined under `innovation:` in `config/workflows.yaml`). Each opens a page whose external link opens in a new tab once its https address is set in `config/inventory.yaml` under `launchers:` (keys `metrodata-ai-use-case`, `splunk-innovation`); until then the page shows a TODO. Launches are audited as `innovation.launch`.
+
 The portal also links each platform's devices to their own native consoles (optional `console_url`), and the **Ekahau Design** tile is a launcher: one click opens the Ekahau environment (hosted on VMware) in a new tab. Set its address in `config/inventory.yaml` under `launchers: {ekahau: {url: https://...}}` (https only). No credentials are passed and each launch is audited as `platform.launch`.
 
 ## 1. Recommended stack and structure
@@ -56,7 +58,7 @@ app/
 config/
   workflows.yaml           workflow catalogue (all ASSUMPTION samples)
   inventory.example.yaml   placeholder devices (copy to inventory.yaml)
-tests/                     29 tests: auth, lockout, timeouts, CSRF, roles, flow, audit, contrast
+tests/                     33 tests: auth, lockout, timeouts, CSRF, roles, flow, audit, contrast
 ```
 
 ## 2. Setup

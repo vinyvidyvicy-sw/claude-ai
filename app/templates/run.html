@@ -1,71 +1,71 @@
 {% extends "base.html" %}
-{% block title %}Run {{ run.id[:8] }}{% endblock %}
+{% block title %}Proses {{ run.id[:8] }}{% endblock %}
 {% block content %}
-<nav aria-label="Breadcrumb" class="crumbs"><a href="/">Dashboard</a> / <a href="/p/{{ run.platform }}">{{ platform.name if platform else run.platform }}</a> / <span aria-current="page">Run {{ run.id[:8] }}</span></nav>
+<nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dasbor</a> / <a href="/p/{{ run.platform }}">{{ platform.name if platform else run.platform }}</a> / <span aria-current="page">Proses {{ run.id[:8] }}</span></nav>
 <h1>{{ workflow.title if workflow else run.workflow_id }}</h1>
 {% if error %}<p class="alert" role="alert" data-focus>{{ error }}</p>{% endif %}
 
 <dl class="facts">
-  <div><dt>Status</dt><dd><span id="run-status" class="badge badge-status-{{ run.status }}">{{ run.status }}</span></dd></div>
-  <div><dt>Requested by</dt><dd>{{ run.username }}</dd></div>
-  <div><dt>Created</dt><dd>{{ run.created_at }}</dd></div>
-  <div><dt>Mode</dt><dd>{{ 'LIVE (sent to backend)' if run.mode == 'live' and live else 'Dry-run (nothing sent)' }}</dd></div>
+  <div><dt>Status</dt><dd><span id="run-status" class="badge badge-status-{{ run.status }}" data-status="{{ run.status }}">{{ status_id[run.status] }}</span></dd></div>
+  <div><dt>Diminta oleh</dt><dd>{{ run.username }}</dd></div>
+  <div><dt>Dibuat</dt><dd>{{ run.created_at }}</dd></div>
+  <div><dt>Mode</dt><dd>{{ 'LIVE (dikirim ke backend)' if run.mode == 'live' and live else 'Dry-run (tidak ada yang dikirim)' }}</dd></div>
 </dl>
 
 <section aria-labelledby="params-h" class="card">
-  <h2 id="params-h">Parameters</h2>
+  <h2 id="params-h">Parameter</h2>
   <dl class="facts">{% for k, v in params.items() %}<div><dt>{{ k }}</dt><dd>{{ v }}</dd></div>{% endfor %}</dl>
 </section>
 
 <section aria-labelledby="plan-h" class="card">
-  <h2 id="plan-h">{{ 'Preview of the request' if run.status == 'previewed' else 'Requested change' }}</h2>
+  <h2 id="plan-h">{{ 'Pratinjau permintaan' if run.status == 'previewed' else 'Perubahan yang diminta' }}</h2>
   <p><strong>{{ plan.summary }}</strong></p>
   <p class="help">{{ plan.note }}</p>
   <ol class="steps">
     {% for s in plan.steps %}
     <li>
       <p>{{ s.description }}</p>
-      <p class="meta">Target: {{ s.target }}{% if s.address %} ({{ s.address }}){% endif %} · {{ 'change' if s.write else 'read-only' }}</p>
+      <p class="meta">Target: {{ s.target }}{% if s.address %} ({{ s.address }}){% endif %} · {{ 'perubahan' if s.write else 'hanya baca' }}</p>
     </li>
     {% endfor %}
   </ol>
-  <h3>Hand-off to the automation backend</h3>
+  <h3>Penyerahan ke backend otomasi</h3>
   {% if plan.dispatch.defined %}
-    <p class="meta">Backend: {{ plan.dispatch.backend }} · Job: {{ plan.dispatch.job }}{% if run.backend_job_id %} · Backend job id: {{ run.backend_job_id }}{% endif %}</p>
+    <p class="meta">Backend: {{ plan.dispatch.backend }} · Job: {{ plan.dispatch.job }}{% if run.backend_job_id %} · ID job backend: {{ run.backend_job_id }}{% endif %}</p>
   {% else %}
-    <p class="todo"><strong>TODO:</strong> backend and job are not defined for this workflow, so a live run will be refused.</p>
+    <p class="todo"><strong>TODO:</strong> backend dan job belum ditentukan untuk workflow ini, sehingga proses live akan ditolak.</p>
   {% endif %}
-  <pre class="code" tabindex="0" aria-label="Data that will be sent to the backend">{{ plan.dispatch.payload | tojson(indent=2) }}</pre>
+  <pre class="code" tabindex="0" aria-label="Data yang akan dikirim ke backend">{{ plan.dispatch.payload | tojson(indent=2) }}</pre>
 </section>
 
 {% if run.status == 'previewed' %}
 <section aria-labelledby="confirm-h" class="card confirm">
-  <h2 id="confirm-h">Confirm</h2>
+  <h2 id="confirm-h">Konfirmasi</h2>
   {% if can_confirm %}
-    <p>{% if live %}<strong>Confirming will send this request to the automation backend, which will change the devices.</strong>
-       {% else %}Confirming will run a <strong>simulation only</strong>: the portal is in dry-run mode and will send nothing to the backend or any device.{% endif %}
-       This preview expires at {{ run.expires_at }}.</p>
+    <p>{% if live %}<strong>Dengan mengonfirmasi, permintaan ini dikirim ke backend otomasi, yang akan mengubah perangkat.</strong>
+       {% else %}Konfirmasi hanya menjalankan <strong>simulasi</strong>: portal berada dalam mode dry-run dan tidak mengirim apa pun ke backend maupun perangkat.{% endif %}
+       Pratinjau ini kedaluwarsa pada {{ run.expires_at }}.</p>
     <form method="post" action="/runs/{{ run.id }}/confirm" class="inline">
       <input type="hidden" name="csrf_token" value="{{ csrf }}">
-      <button class="btn {{ 'btn-danger' if live else 'btn-primary' }}" type="submit">{{ 'Confirm and send to backend' if live else 'Confirm (simulate)' }}</button>
+      <button class="btn {{ 'btn-danger' if live else 'btn-primary' }}" type="submit">{{ 'Konfirmasi dan kirim ke backend' if live else 'Konfirmasi (simulasi)' }}</button>
     </form>
     <form method="post" action="/runs/{{ run.id }}/cancel" class="inline">
       <input type="hidden" name="csrf_token" value="{{ csrf }}">
-      <button class="btn btn-secondary" type="submit">Cancel</button>
+      <button class="btn btn-secondary" type="submit">Batalkan</button>
     </form>
   {% else %}
-    <p>Only the user who created this preview ({{ run.username }}) can confirm it.</p>
+    <p>Hanya pengguna yang membuat pratinjau ini ({{ run.username }}) yang dapat mengonfirmasinya.</p>
   {% endif %}
 </section>
 {% endif %}
 
 <section aria-labelledby="log-h" class="card">
-  <h2 id="log-h">Run log</h2>
+  <h2 id="log-h">Log proses</h2>
   <p id="run-summary" class="meta">{{ run.result_summary or '' }}</p>
-  <pre class="code log" id="run-log" tabindex="0" aria-live="off" aria-label="Run log"
+  <pre class="code log" id="run-log" tabindex="0" aria-live="off" aria-label="Log proses"
        data-run-id="{{ run.id }}" data-status="{{ run.status }}">{% for l in logs %}{{ l.ts }} {{ l.level|upper }} {{ l.message }}
 {% endfor %}</pre>
-  <noscript>{% if run.status == 'running' %}<p>Reload this page to see progress.</p>{% endif %}</noscript>
+  <noscript>{% if run.status == 'running' %}<p>Muat ulang halaman ini untuk melihat perkembangan.</p>{% endif %}</noscript>
 </section>
 {% endblock %}
 {% block scripts %}<script src="/static/js/run.js" defer></script>{% endblock %}

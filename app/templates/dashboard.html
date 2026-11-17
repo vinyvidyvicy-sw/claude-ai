@@ -1,28 +1,27 @@
 {% extends "base.html" %}
 {% from "_icons.html" import icon %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dasbor{% endblock %}
 {% block content %}
-<h1>Platforms</h1>
-<p class="lead">Choose a platform to see its predefined workflows.</p>
-<p class="notice">This portal is a <strong>front end</strong>. It collects and checks your request, shows a preview, records your approval, and hands the request to the automation backend. It does not configure devices itself and holds no device credentials.</p>
-<ul class="tiles" aria-label="Platforms">
+<h1>Platform</h1>
+<p class="lead">Pilih platform untuk melihat workflow yang sudah ditentukan.</p>
+<p class="notice">Portal ini adalah <strong>front end</strong>. Portal menerima dan memeriksa permintaan Anda, menampilkan pratinjau, mencatat persetujuan Anda, lalu meneruskan permintaan ke backend otomasi. Portal tidak mengonfigurasi perangkat sendiri dan tidak menyimpan kredensial perangkat.</p>
+<ul class="tiles" aria-label="Platform">
   {% for t in tiles %}
   <li class="tile">
     <div class="tile-head">
       {{ icon(t.platform.icon, 30) }}
       {% if t.platform.launcher %}
       <h2><a class="tile-link" href="{{ '/launch/' ~ t.platform.id if t.launch else '/p/' ~ t.platform.id }}"
-             {% if t.launch %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ t.platform.name }}{% if t.launch %}<span class="visually-hidden"> (opens in a new tab)</span>{% endif %}</a></h2>
+             {% if t.launch %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ t.platform.name }}{% if t.launch %}<span class="visually-hidden"> (dibuka di tab baru)</span>{% endif %}</a></h2>
       {% else %}
       <h2><a class="tile-link" href="/p/{{ t.platform.id }}">{{ t.platform.name }}</a></h2>
       {% endif %}
     </div>
     <p>{{ t.platform.summary }}</p>
     {% if t.platform.launcher %}
-    <p class="meta">{% if t.launch %}Opens in a new tab{% else %}Not set up yet (TODO){% endif %}</p>
+    <p class="meta">{% if t.launch %}Dibuka di tab baru{% else %}Belum disiapkan (TODO){% endif %}</p>
     {% else %}
-    <p class="meta">{{ t.workflow_count }} workflow{{ '' if t.workflow_count == 1 else 's' }} ·
-       {{ t.device_count }} device{{ '' if t.device_count == 1 else 's' }}</p>
+    <p class="meta">{{ t.workflow_count }} workflow · {{ t.device_count }} perangkat</p>
     {% endif %}
   </li>
   {% endfor %}

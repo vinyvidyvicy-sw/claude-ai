@@ -37,11 +37,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.runs = runs
     st.templates = Jinja2Templates(directory=str(BASE / "templates"))
     st.templates.env.globals["logos"] = _find_logos()
+    st.templates.env.globals["innovation_items"] = list(catalog.innovation.values())
+    st.templates.env.globals.update(
+        status_id={"previewed": "pratinjau", "running": "berjalan", "succeeded": "berhasil", "failed": "gagal",
+                   "cancelled": "dibatalkan", "expired": "kedaluwarsa"},
+        risk_id={"low": "rendah", "medium": "sedang", "high": "tinggi"},
+        result_id={"success": "berhasil", "failure": "gagal", "denied": "ditolak"},
+    )
 
     app.mount("/static", StaticFiles(directory=str(BASE / "static")), name="static")
 
-    from .routes import admin, auth, dashboard, runs as runs_routes
-    for module in (auth, dashboard, runs_routes, admin):
+    from .routes import admin, auth, dashboard, innovation, runs as runs_routes
+    for module in (auth, dashboard, innovation, runs_routes, admin):
         app.include_router(module.router)
 
     @app.get("/healthz", include_in_schema=False)
@@ -52,7 +59,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.exception_handler(deps.LoginRequired)
     async def _login_required(request: Request, exc: deps.LoginRequired):
         if request.url.path.endswith(".json"):
-            return PlainTextResponse("Session expired", status_code=401)
+            return PlainTextResponse("Sesi berakhir", status_code=401)
         return deps.login_redirect(exc.next_url, exc.expired)
 
     @app.exception_handler(deps.RedirectNeeded)
@@ -65,20 +72,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.exception_handler(deps.Forbidden)
     async def _forbidden(request: Request, exc: deps.Forbidden):
-        return _error(request, 403, "Not permitted", "Your role does not allow this action.")
+        return _error(request, 403, "Tidak diizinkan", "Peran Anda tidak mengizinkan tindakan ini.")
 
     @app.exception_handler(deps.CsrfFailed)
     async def _csrf(request: Request, exc: deps.CsrfFailed):
-        return _error(request, 403, "Request rejected",
-                      "The form's security token was missing or invalid. Go back, reload the page and try again.")
+        return _error(request, 403, "Permintaan ditolak",
+                      "Token keamanan formulir tidak ada atau tidak valid. Kembali, muat ulang halaman, lalu coba lagi.")
 
     @app.exception_handler(404)
     async def _not_found(request: Request, exc):
-        return _error(request, 404, "Page not found", "We could not find that page.")
+        return _error(request, 404, "Halaman tidak ditemukan", "Halaman tersebut tidak dapat ditemukan.")
 
     @app.exception_handler(500)
     async def _server_error(request: Request, exc):
-        return _error(request, 500, "Something went wrong", "The error was logged. Please try again.")
+        return _error(request, 500, "Terjadi kesalahan", "Kesalahan sudah dicatat. Silakan coba lagi.")
 
     # ---------------------------------------------------------------- headers
     @app.middleware("http")

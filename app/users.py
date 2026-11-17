@@ -49,14 +49,14 @@ def create_user(
     must_change_password: bool,
 ) -> int:
     if not USERNAME_RE.match(username):
-        raise UserError("Username must be 3-32 characters: letters, digits, '.', '_' or '-'.")
+        raise UserError("Nama pengguna harus 3-32 karakter: huruf, angka, '.', '_' atau '-'.")
     if role not in ROLES:
-        raise UserError("Unknown role.")
+        raise UserError("Peran tidak dikenal.")
     problems = password_problems(password, username, settings.password_min_length)
     if problems:
         raise UserError(" ".join(problems))
     if get_by_username(conn, username):
-        raise UserError("That username already exists.")
+        raise UserError("Nama pengguna itu sudah ada.")
     cur = conn.execute(
         "INSERT INTO users (username, password_hash, role, must_change_password, created_at, created_by,"
         " password_changed_at) VALUES (?,?,?,?,?,?,?)",

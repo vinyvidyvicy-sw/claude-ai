@@ -27,7 +27,7 @@ def test_login_cookie_flags(client):
 def test_requires_login_and_bad_password(client):
     assert client.get("/").status_code == 303
     r = login(client, "alice", "wrong")
-    assert r.status_code == 401 and "Sign-in failed" in r.text
+    assert r.status_code == 401 and "Gagal masuk" in r.text
     assert login(client, "nobody", "x").status_code == 401
 
 
@@ -80,7 +80,7 @@ def test_admin_create_reset_disable(app):
     login(admin, "alice", "correct horse battery")
     tok = session_csrf(admin, "/admin/users")
     r = admin.post("/admin/users", data={"username": "carol", "role": "engineer", "csrf_token": tok})
-    assert r.status_code == 200 and "Temporary password" in r.text
+    assert r.status_code == 200 and "Kata sandi sementara" in r.text
     import re
     temp = re.search(r'class="secret"[^>]*>([^<]+)<', r.text).group(1)
     with app.state.db.conn() as c:
@@ -97,7 +97,7 @@ def test_admin_create_reset_disable(app):
     assert login(client_for(app), "carol", temp).status_code == 401
     admin.post(f"/admin/users/{row['id']}/enable", data={"csrf_token": tok})
     r = admin.post(f"/admin/users/{row['id']}/reset", data={"csrf_token": tok})
-    assert "Temporary password" in r.text
+    assert "Kata sandi sementara" in r.text
 
 
 def test_cannot_disable_last_admin(app):
