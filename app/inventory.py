@@ -9,7 +9,6 @@ from pathlib import Path
 import yaml
 
 log = logging.getLogger("portal.inventory")
-REF_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,62}$")
 
 
@@ -21,8 +20,8 @@ class InventoryError(ValueError):
 class Device:
     name: str
     platform: str
-    address: str  # management address or FQDN; not a secret
-    credential_ref: str  # NAME of the credential in the secrets store, never the secret itself
+    address: str  # management address or FQDN; informational, shown to the engineer
+    console_url: str | None = None  # optional https:// link to the device's / platform's own console
 
 
 class Inventory:
@@ -52,18 +51,21 @@ def load(path: Path) -> Inventory:
     devices: list[Device] = []
     for i, item in enumerate(data.get("devices") or []):
         try:
-            name, platform = str(item["name"]), str(item["platform"])
-            address, ref = str(item["address"]), str(item["credential_ref"])
+            name, platform, address = str(item["name"]), str(item["platform"]), str(item["address"])
         except (KeyError, TypeError):
-            errors.append(f"devices[{i}]: name, platform, address and credential_ref are required")
+            errors.append(f"devices[{i}]: name, platform and address are required")
             continue
+        if "credential_ref" in item:
+            log.warning("devices[%d]: credential_ref is ignored; this portal holds no device credentials", i)
+        console = item.get("console_url")
+        if console is not None and not str(console).startswith("https://"):
+            errors.append(f"devices[{i}]: console_url must start with https://")
+            console = None
         if not NAME_RE.match(name):
             errors.append(f"devices[{i}]: invalid name {name!r}")
-        if not REF_RE.match(ref):
-            errors.append(f"devices[{i}]: invalid credential_ref {ref!r}")
         if any(d.name == name for d in devices):
             errors.append(f"devices[{i}]: duplicate name {name!r}")
-        devices.append(Device(name, platform, address, ref))
+        devices.append(Device(name, platform, address, str(console) if console else None))
     if errors:
         raise InventoryError("; ".join(errors))
     return Inventory(devices)

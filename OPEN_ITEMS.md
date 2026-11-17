@@ -3,12 +3,12 @@
 ## A. Required inputs (blocking real device integration)
 1. **Software/API versions** for ISE, Catalyst Center, APIC, NX-OS, IOS-XE, Splunk ES, ESXi/vSphere. Interface choices below are *candidates to verify*, not confirmed.
 2. **Workflow list and parameters per platform.** All 7 shipped workflows are ASSUMPTION samples.
-3. **Confirmed interface per platform**: ISE (ERS vs OpenAPI), Catalyst Center REST, APIC REST, NX-OS (NX-API vs RESTCONF), IOS-XE (RESTCONF vs NETCONF), Splunk REST, vSphere API.
-4. **Request definitions**: every sample step has `request: TODO` (no endpoint, payload or object model was invented).
-5. **Adapters**: none written. Each needs authentication (token/session/basic), TLS verification and CA handling, timeouts, error mapping.
-6. **Device inventory and management IPs** (config only). Shipped `inventory.example.yaml` is placeholder (192.0.2.0/24).
-7. **Device credential store**: env/secret files supported; confirm whether Vault, CyberArk or a cloud secret manager is required.
-8. **Device authentication model**: should device access go through TACACS+/RADIUS (e.g. via ISE) rather than service accounts? Portal login stays local, as requested.
+3. **Which automation backend** performs the changes (e.g. an automation/orchestration platform, CI system or ITSM tool), its API, authentication and job/status/log format. The portal is a front end only; this is the main blocker.
+4. **Dispatch definitions**: every sample workflow has `dispatch: {backend: TODO, job: TODO}` (no job names, endpoints or payloads were invented). What variables does each backend job expect?
+5. **Backend integration class**: not written (two methods: `submit`, `poll`). Needs service authentication, TLS/CA handling, timeouts, error mapping, and use of the run id as an idempotency key.
+6. **Device inventory and management IPs** (config only), and optional `console_url` links to each platform's own console. Shipped `inventory.example.yaml` is placeholder (192.0.2.0/24).
+7. **Service credential for the backend**: where the portal gets the one token/account it uses to call the backend (env, Vault, CyberArk, cloud secret manager). Device credentials stay in the backend.
+8. **Device authentication model**: should device access (inside the backend) go through TACACS+/RADIUS (e.g. via ISE) rather than service accounts? Portal login stays local, as requested.
 9. **Hosting environment** and whether outbound internet is allowed (affects TLS termination, DB choice, single vs multiple instances, package mirrors).
 10. **Brand assets**: may official Cisco logo, fonts and colours be used? Until confirmed the theme is a neutral placeholder.
 
@@ -22,9 +22,9 @@
 17. Audit retention period and where it must be shipped (SIEM/Splunk).
 
 ## C. Known gaps in the delivered code
-18. **Dry-run is plan-only**: no read of live device state, so no true before/after diff.
-19. No **rollback**; a failed step stops the run and leaves earlier steps applied.
-20. No per-device/workflow **locking**; two engineers can run against the same device concurrently.
+18. **Preview is request-only**: the portal does not read devices, so there is no before/after diff (optional backend "check mode" TODO).
+19. **Rollback** is the backend's responsibility; the portal only reports the backend's final state.
+20. No per-device/workflow **locking** in the portal; two engineers can submit against the same device concurrently (the backend may serialise).
 21. No **MFA/SSO**, no per-IP **rate limiting** (use the reverse proxy), no email/notification on lockout.
 22. Audit log is append-only at the DB-trigger level only; true tamper evidence needs an external write-once sink.
 23. SQLite and in-process worker threads: single instance only. Runs interrupted by restart are marked failed.

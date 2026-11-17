@@ -56,7 +56,8 @@ CREATE TABLE IF NOT EXISTS runs (
     confirmed_by   TEXT,
     started_at     TEXT,
     finished_at    TEXT,
-    result_summary TEXT
+    result_summary TEXT,
+    backend_job_id TEXT                               -- id returned by the automation backend
 );
 CREATE INDEX IF NOT EXISTS idx_runs_created ON runs(created_at);
 
@@ -98,6 +99,9 @@ class Database:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.conn() as c:
             c.executescript(SCHEMA)
+            cols = {r["name"] for r in c.execute("PRAGMA table_info(runs)")}
+            if "backend_job_id" not in cols:  # databases created by earlier versions
+                c.execute("ALTER TABLE runs ADD COLUMN backend_job_id TEXT")
         try:
             self.path.chmod(0o600)
         except OSError:

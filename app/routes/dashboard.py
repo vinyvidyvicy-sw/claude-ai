@@ -25,7 +25,6 @@ def platform_page(platform_id: str, request: Request, p: Principal = Depends(req
     plat = st.catalog.platforms.get(platform_id)
     if plat is None:
         raise HTTPException(404)
-    devices = [{"device": d, "creds": st.credentials.is_configured(d.credential_ref)}
-               for d in st.inventory.for_platform(platform_id)]
+    devices = st.inventory.for_platform(platform_id)
     return render(request, "platform.html", principal=p, platform=plat,
                   workflows=st.catalog.for_platform(platform_id), devices=devices)

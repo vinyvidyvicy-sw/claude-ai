@@ -9,7 +9,7 @@ from app.settings import ROOT
 from conftest import client_for, csrf_from, login, session_csrf
 
 PLATFORMS = {"ise", "sda", "aci", "nxos", "catalyst", "splunk", "esxi"}
-INV = Inventory([Device("nxos-lab-1", "nxos", "192.0.2.13", "nxos-lab")])
+INV = Inventory([Device("nxos-lab-1", "nxos", "192.0.2.13")])
 
 
 def catalog():
@@ -68,6 +68,8 @@ def test_loader_rejects_bad_config(tmp_path):
     attempt(lambda d: d["workflows"][3]["parameters"].append({"name": "api_token", "type": "string"}))
     attempt(lambda d: d["workflows"].append(json.loads(json.dumps(wf))))  # duplicate id
     attempt(lambda d: d["workflows"][3]["plan"]["steps"][0].update(description="{missing}"))
+    attempt(lambda d: d["workflows"][3]["plan"]["steps"][0].update(interface="nxos-api"))  # old key rejected
+    attempt(lambda d: d["workflows"][3]["dispatch"].update(payload={"api_token": "{vlan_id}"}))
     attempt(lambda d: d["workflows"][3].update(platform="nope"))
 
 
@@ -101,6 +103,7 @@ def test_preview_then_confirm_flow(app):
         assert db.execute("SELECT COUNT(*) FROM run_log WHERE run_id=?", (run_id,)).fetchone()[0] == 0
     html = c.get(run_url).text
     assert "Confirm (simulate)" in html and "Create VLAN 100" in html
+    assert "does not change devices" in html
 
     # another user cannot confirm
     other = client_for(app)
@@ -114,8 +117,8 @@ def test_preview_then_confirm_flow(app):
     assert r.status_code == 303
     with app.state.db.conn() as db:
         row = db.execute("SELECT * FROM runs WHERE id=?", (run_id,)).fetchone()
-        assert row["status"] == "succeeded" and "no changes were sent" in row["result_summary"]
-        assert any("DRY-RUN" in r[0] for r in db.execute("SELECT message FROM run_log WHERE run_id=?", (run_id,)))
+        assert row["status"] == "succeeded" and "no request was sent" in row["result_summary"]
+        assert any("nothing was sent" in r[0] for r in db.execute("SELECT message FROM run_log WHERE run_id=?", (run_id,)))
         acts = [r[0] for r in db.execute("SELECT action FROM audit_log WHERE target='nxos-create-vlan' ORDER BY id")]
     assert acts == ["workflow.preview", "workflow.confirm", "workflow.confirm", "workflow.run"]  # 2nd = denied attempt by another user
     # second confirm is refused
@@ -145,23 +148,100 @@ def test_viewer_cannot_preview(app):
     assert c.post(page + "/preview", data={**FORM, "csrf_token": session_csrf(c, "/")}).status_code == 403
 
 
-def test_live_mode_refuses_todo_steps(tmp_path):
+def _live_app(tmp_path, **env):
     from conftest import make_settings
     from app.main import create_app
     from app import users
-    a = create_app(make_settings(tmp_path, PORTAL_EXECUTION_MODE="live"))
+    a = create_app(make_settings(tmp_path, PORTAL_EXECUTION_MODE="live", PORTAL_BACKEND_POLL_SECONDS="0", **env))
     a.state.runs.submit = a.state.runs._execute
     with a.state.db.conn() as db:
         users.create_user(db, a.state.settings, username="bob", password="staple battery horse",
                           role="engineer", created_by="t", must_change_password=False)
     c = client_for(a)
     login(c, "bob", "staple battery horse")
+    return a, c
+
+
+def _run_vlan(c):
     page = "/p/nxos/nxos-create-vlan"
     run_id = c.post(page + "/preview", data={**FORM, "csrf_token": session_csrf(c, page)}).headers["location"].rsplit("/", 1)[1]
     c.post(f"/runs/{run_id}/confirm", data={"csrf_token": session_csrf(c)})
+    return run_id
+
+
+def _row(a, run_id):
     with a.state.db.conn() as db:
-        row = db.execute("SELECT status, result_summary FROM runs WHERE id=?", (run_id,)).fetchone()
+        return db.execute("SELECT * FROM runs WHERE id=?", (run_id,)).fetchone()
+
+
+def test_live_mode_refuses_todo_dispatch(tmp_path):
+    a, c = _live_app(tmp_path)
+    row = _row(a, _run_vlan(c))
     assert row["status"] == "failed" and "TODO" in row["result_summary"]
+
+
+def test_live_mode_hands_off_to_backend_and_mirrors_status(tmp_path, monkeypatch):
+    from app import runner, workflows as wfm
+    from app.runner import JobStatus
+    calls = {"polls": 0, "submitted": None}
+
+    class Fake:
+        def submit(self, job):
+            calls["submitted"] = job
+            return "job-42"
+
+        def poll(self, job_id):
+            calls["polls"] += 1
+            if calls["polls"] < 2:
+                return JobStatus("running", ["started"])
+            return JobStatus("succeeded", ["started", "vlan created token=abc123"], "done")
+
+    a, c = _live_app(tmp_path)
+    runner.register_backend("fake", Fake())
+    try:
+        # point the workflow at the fake backend
+        wf = a.state.catalog.workflows["nxos-create-vlan"]
+        a.state.catalog.workflows["nxos-create-vlan"] = wfm.replace_dispatch(wf, backend="fake", job="create_vlan")
+        run_id = _run_vlan(c)
+    finally:
+        runner.BACKENDS.pop("fake", None)
+    row = _row(a, run_id)
+    assert row["status"] == "succeeded" and row["backend_job_id"] == "job-42"
+    job = calls["submitted"]
+    assert job["backend_job"] == "create_vlan" and job["payload"]["vlan_id"] == 100 and job["run_id"] == run_id
+    with a.state.db.conn() as db:
+        msgs = " | ".join(r[0] for r in db.execute("SELECT message FROM run_log WHERE run_id=?", (run_id,)))
+    assert "[backend] started" in msgs and "vlan created" in msgs and "abc123" not in msgs  # secret-like text scrubbed
+
+
+def test_live_mode_backend_failure_and_timeout(tmp_path):
+    from app import runner, workflows as wfm
+    from app.runner import JobStatus
+
+    class Failing:
+        def submit(self, job): return "j1"
+        def poll(self, job_id): return JobStatus("failed", ["boom"], "backend said no")
+
+    class Stuck:
+        def submit(self, job): return "j2"
+        def poll(self, job_id): return JobStatus("running", [])
+
+    for backend, env, expect in ((Failing(), {}, "backend said no"),
+                                 (Stuck(), {"PORTAL_BACKEND_TIMEOUT_SECONDS": "1"}, "timed out")):
+        a, c = _live_app(tmp_path / expect[:4], **env)
+        runner.register_backend("fake", backend)
+        try:
+            wf = a.state.catalog.workflows["nxos-create-vlan"]
+            a.state.catalog.workflows["nxos-create-vlan"] = wfm.replace_dispatch(wf, backend="fake", job="x")
+            row = _row(a, _run_vlan(c))
+        finally:
+            runner.BACKENDS.pop("fake", None)
+        assert row["status"] == "failed" and expect in row["result_summary"]
+
+
+def test_portal_holds_no_device_credentials():
+    import importlib.util
+    assert importlib.util.find_spec("app.credentials") is None
 
 
 def test_audit_never_contains_secrets(app, tmp_path):

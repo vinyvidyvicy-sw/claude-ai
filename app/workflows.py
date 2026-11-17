@@ -1,8 +1,8 @@
 """Workflow definitions: load/validate the YAML config, validate user input, build the dry-run plan.
 
 Workflows are data. Adding one means editing config/workflows.yaml - no code changes.
-Nothing here knows any device API: a step's `request` is either a mapping supplied by the
-operator once the interface is confirmed, or the literal string TODO.
+This portal is a front end: it never talks to devices. A workflow's `dispatch` block names the
+automation backend and job that perform the change once a request is confirmed (or TODO).
 """
 from __future__ import annotations
 
@@ -55,12 +55,23 @@ class Param:
 
 @dataclass(frozen=True)
 class Step:
+    """A human-readable line of the preview. The portal does not execute steps itself."""
     id: str
     description: str
-    interface: str
     write: bool
     target: str  # template; usually "{device}"
-    request: Any  # "TODO" or a mapping
+
+
+@dataclass(frozen=True)
+class Dispatch:
+    """Where a confirmed request is handed over. The automation backend performs the change."""
+    backend: str  # name of a registered backend, or the literal TODO
+    job: str  # backend-side job/playbook/template identifier, or TODO
+    payload: dict | None  # optional mapping; omitted = pass all validated parameters as-is
+
+    @property
+    def defined(self) -> bool:
+        return self.backend != "TODO" and self.job != "TODO"
 
 
 @dataclass(frozen=True)
@@ -74,6 +85,7 @@ class Workflow:
     params: tuple[Param, ...]
     summary: str
     steps: tuple[Step, ...]
+    dispatch: Dispatch
     hash: str = ""
     notes: tuple[str, ...] = ()
 
@@ -87,8 +99,9 @@ class Platform:
     id: str
     name: str
     summary: str
-    interface_note: str  # candidate interfaces; shown as UNCONFIRMED until the user supplies versions
+    interface_note: str  # note shown on the platform page (what the backend will talk to; unconfirmed)
     version_note: str
+    console_note: str = ""  # optional hint for the "open console" links
 
 
 @dataclass
@@ -121,6 +134,7 @@ def load(path: Path) -> WorkflowCatalog:
             summary=str(p.get("summary", "")),
             interface_note=str(p.get("interface_note", "TODO: confirm interface")),
             version_note=str(p.get("version_note", "TODO: confirm software/API version")),
+            console_note=str(p.get("console_note", "")),
         )
 
     for i, w in enumerate(raw.get("workflows") or []):
@@ -169,27 +183,34 @@ def _parse_workflow(w: dict, catalog: WorkflowCatalog, problems: list[str], wher
     summary = str(plan.get("summary", ""))
     _check_placeholders(summary, known, problems, f"{where}.plan.summary")
     steps: list[Step] = []
-    for k, s in enumerate(plan.get("steps") or []):
+    for k, st in enumerate(plan.get("steps") or []):
         loc = f"{where}.plan.steps[{k}]"
+        if "interface" in st or "request" in st:
+            problems.append(f"{loc}: 'interface'/'request' are no longer supported; this portal does not call "
+                            "devices. Put the hand-off in the workflow's 'dispatch' block instead")
         step = Step(
-            id=str(s["id"]),
-            description=str(s["description"]),
-            interface=str(s["interface"]),
-            write=bool(s.get("write", True)),
-            target=str(s.get("target", "{device}" if "device" in known else "")),
-            request=s.get("request", "TODO"),
+            id=str(st["id"]),
+            description=str(st["description"]),
+            write=bool(st.get("write", True)),
+            target=str(st.get("target", "{device}" if "device" in known else "")),
         )
         if any(x.id == step.id for x in steps):
             problems.append(f"{loc}: duplicate step id")
         _check_placeholders(step.description, known, problems, loc)
         _check_placeholders(step.target, known, problems, loc)
-        if step.request != "TODO":
-            if not isinstance(step.request, dict):
-                problems.append(f"{loc}: request must be TODO or a mapping")
-            else:
-                for text in _strings(step.request):
-                    _check_placeholders(text, known, problems, loc)
         steps.append(step)
+    d = w.get("dispatch") or {}
+    payload = d.get("payload")
+    if payload is not None:
+        if not isinstance(payload, dict):
+            problems.append(f"{where}.dispatch.payload must be a mapping")
+        else:
+            for text in _strings(payload):
+                _check_placeholders(text, known, problems, f"{where}.dispatch.payload")
+    for key in (payload or {}):
+        if is_secret_name(str(key)):
+            problems.append(f"{where}.dispatch.payload: {key!r} looks like a secret; the backend holds secrets")
+    dispatch = Dispatch(backend=str(d.get("backend", "TODO")), job=str(d.get("job", "TODO")), payload=payload)
     if not steps:
         problems.append(f"{where}: at least one plan step is required")
 
@@ -199,7 +220,7 @@ def _parse_workflow(w: dict, catalog: WorkflowCatalog, problems: list[str], wher
     return Workflow(
         id=wid, platform=platform, title=str(w["title"]), description=str(w.get("description", "")),
         risk=risk, assumption=bool(w.get("assumption", False)), params=tuple(params),
-        summary=summary, steps=tuple(steps),
+        summary=summary, steps=tuple(steps), dispatch=dispatch,
         hash=hashlib.sha256(definition.encode()).hexdigest(),
         notes=tuple(str(n) for n in (w.get("notes") or [])),
     )
@@ -344,21 +365,22 @@ def render(template: str, values: dict[str, Any]) -> str:
     return PLACEHOLDER_RE.sub(lambda m: str(values.get(m.group(1), "")), template)
 
 
-def _render_request(node: Any, values: dict[str, Any]) -> Any:
+def _render_payload(node: Any, values: dict[str, Any]) -> Any:
     if isinstance(node, str):
-        return render(node, values)
+        m = PLACEHOLDER_RE.fullmatch(node)
+        return values.get(m.group(1)) if m else render(node, values)  # a lone {x} keeps its type
     if isinstance(node, dict):
-        return {k: _render_request(v, values) for k, v in node.items()}
+        return {k: _render_payload(v, values) for k, v in node.items()}
     if isinstance(node, list):
-        return [_render_request(v, values) for v in node]
+        return [_render_payload(v, values) for v in node]
     return node
 
 
 def build_plan(wf: Workflow, values: dict[str, Any], inventory: Inventory) -> dict[str, Any]:
-    """The dry-run: what the portal intends to do, from parameters alone.
+    """The preview: what will be requested, from your inputs alone.
 
-    It does NOT read live device state, so it cannot show a true diff. TODO: per-platform
-    read adapters for a real before/after comparison once interfaces are confirmed.
+    The portal never reads or changes devices, so this is not a diff against device state.
+    TODO: optional "check mode" call to the automation backend for a real diff.
     """
     steps = []
     for s in wf.steps:
@@ -369,20 +391,28 @@ def build_plan(wf: Workflow, values: dict[str, Any], inventory: Inventory) -> di
             "description": render(s.description, values),
             "target": target,
             "address": device.address if device else None,
-            "interface": s.interface,
             "write": s.write,
-            "request_defined": s.request != "TODO",
-            "request": None if s.request == "TODO" else _render_request(s.request, values),
         })
+    d = wf.dispatch
+    payload = _render_payload(d.payload, values) if d.payload is not None else dict(values)
     return {
         "summary": render(wf.summary, values) or wf.title,
         "steps": steps,
         "writes": sum(1 for s in steps if s["write"]),
-        "unresolved_todo": sum(1 for s in steps if not s["request_defined"]),
-        "read_only_note": "Planned from your inputs only; not compared with live device state.",
+        "dispatch": {"backend": d.backend, "job": d.job, "defined": d.defined, "payload": payload},
+        "note": "The portal does not change devices. On confirmation this request is handed to the automation "
+                "backend, which performs the change. This preview is built from your inputs only.",
     }
 
 
 def plan_hash(plan: dict[str, Any], params: dict[str, Any]) -> str:
     blob = json.dumps({"plan": plan, "params": params}, sort_keys=True, default=str)
     return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def replace_dispatch(wf: Workflow, **changes: Any) -> Workflow:
+    """Copy of a workflow with a different dispatch (used by tests and tooling)."""
+    from dataclasses import replace
+    d = wf.dispatch
+    new = Dispatch(changes.get("backend", d.backend), changes.get("job", d.job), changes.get("payload", d.payload))
+    return replace(wf, dispatch=new)

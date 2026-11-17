@@ -39,9 +39,9 @@
     <div class="mode-bar {{ 'mode-live' if execution_mode == 'live' else 'mode-dry' }}" role="note">
       <div class="container">
         {% if execution_mode == 'live' %}
-          <strong>LIVE mode</strong> — confirmed workflows may write to devices.
+          <strong>LIVE mode</strong> — confirmed requests are sent to the automation backend, which changes the devices.
         {% else %}
-          <strong>DRY-RUN mode</strong> — confirmed workflows are simulated; no device is contacted.
+          <strong>DRY-RUN mode</strong> — confirmed requests are simulated; nothing is sent to the backend or any device.
         {% endif %}
       </div>
     </div>

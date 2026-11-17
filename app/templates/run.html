@@ -9,7 +9,7 @@
   <div><dt>Status</dt><dd><span id="run-status" class="badge badge-status-{{ run.status }}">{{ run.status }}</span></dd></div>
   <div><dt>Requested by</dt><dd>{{ run.username }}</dd></div>
   <div><dt>Created</dt><dd>{{ run.created_at }}</dd></div>
-  <div><dt>Mode</dt><dd>{{ 'LIVE' if run.mode == 'live' and live else 'Dry-run (no device contact)' }}</dd></div>
+  <div><dt>Mode</dt><dd>{{ 'LIVE (sent to backend)' if run.mode == 'live' and live else 'Dry-run (nothing sent)' }}</dd></div>
 </dl>
 
 <section aria-labelledby="params-h" class="card">
@@ -18,32 +18,36 @@
 </section>
 
 <section aria-labelledby="plan-h" class="card">
-  <h2 id="plan-h">{{ 'Dry-run preview' if run.status == 'previewed' else 'Planned changes' }}</h2>
+  <h2 id="plan-h">{{ 'Preview of the request' if run.status == 'previewed' else 'Requested change' }}</h2>
   <p><strong>{{ plan.summary }}</strong></p>
-  <p class="help">{{ plan.read_only_note }}</p>
+  <p class="help">{{ plan.note }}</p>
   <ol class="steps">
     {% for s in plan.steps %}
     <li>
       <p>{{ s.description }}</p>
-      <p class="meta">Target: {{ s.target }}{% if s.address %} ({{ s.address }}){% endif %} · Interface: {{ s.interface }} ·
-        {{ 'WRITE' if s.write else 'read-only' }}{% if not s.request_defined %} · <span class="todo-inline">request definition TODO</span>{% endif %}</p>
-      {% if s.request %}<pre class="code" tabindex="0">{{ s.request | tojson(indent=2) }}</pre>{% endif %}
+      <p class="meta">Target: {{ s.target }}{% if s.address %} ({{ s.address }}){% endif %} · {{ 'change' if s.write else 'read-only' }}</p>
     </li>
     {% endfor %}
   </ol>
-  <p class="meta">{{ plan.writes }} write step(s){% if plan.unresolved_todo %} · {{ plan.unresolved_todo }} step(s) with TODO request definitions (these will refuse to run live){% endif %}.</p>
+  <h3>Hand-off to the automation backend</h3>
+  {% if plan.dispatch.defined %}
+    <p class="meta">Backend: {{ plan.dispatch.backend }} · Job: {{ plan.dispatch.job }}{% if run.backend_job_id %} · Backend job id: {{ run.backend_job_id }}{% endif %}</p>
+  {% else %}
+    <p class="todo"><strong>TODO:</strong> backend and job are not defined for this workflow, so a live run will be refused.</p>
+  {% endif %}
+  <pre class="code" tabindex="0" aria-label="Data that will be sent to the backend">{{ plan.dispatch.payload | tojson(indent=2) }}</pre>
 </section>
 
 {% if run.status == 'previewed' %}
 <section aria-labelledby="confirm-h" class="card confirm">
   <h2 id="confirm-h">Confirm</h2>
   {% if can_confirm %}
-    <p>{% if live %}<strong>Confirming will apply these changes to the devices listed above.</strong>
-       {% else %}Confirming will run a <strong>simulation only</strong>: the portal is in dry-run mode and will not contact any device.{% endif %}
+    <p>{% if live %}<strong>Confirming will send this request to the automation backend, which will change the devices.</strong>
+       {% else %}Confirming will run a <strong>simulation only</strong>: the portal is in dry-run mode and will send nothing to the backend or any device.{% endif %}
        This preview expires at {{ run.expires_at }}.</p>
     <form method="post" action="/runs/{{ run.id }}/confirm" class="inline">
       <input type="hidden" name="csrf_token" value="{{ csrf }}">
-      <button class="btn {{ 'btn-danger' if live else 'btn-primary' }}" type="submit">{{ 'Confirm and apply' if live else 'Confirm (simulate)' }}</button>
+      <button class="btn {{ 'btn-danger' if live else 'btn-primary' }}" type="submit">{{ 'Confirm and send to backend' if live else 'Confirm (simulate)' }}</button>
     </form>
     <form method="post" action="/runs/{{ run.id }}/cancel" class="inline">
       <input type="hidden" name="csrf_token" value="{{ csrf }}">

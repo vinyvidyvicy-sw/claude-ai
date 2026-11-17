@@ -22,15 +22,16 @@
 </ul>
 {% else %}<p>No workflows are defined for this platform yet. Add one in <code>config/workflows.yaml</code>.</p>{% endif %}
 
-<h2>Devices</h2>
+<h2>Devices and consoles</h2>
+{% if platform.console_note %}<p class="help">{{ platform.console_note }}</p>{% endif %}
 {% if devices %}
 <table>
   <caption class="visually-hidden">Devices in the inventory for {{ platform.name }}</caption>
-  <thead><tr><th scope="col">Name</th><th scope="col">Management address</th><th scope="col">Credential configured</th></tr></thead>
+  <thead><tr><th scope="col">Name</th><th scope="col">Management address</th><th scope="col">Native console</th></tr></thead>
   <tbody>
   {% for d in devices %}
-    <tr><th scope="row">{{ d.device.name }}</th><td>{{ d.device.address }}</td>
-        <td>{{ 'Yes' if d.creds else 'No' }}</td></tr>
+    <tr><th scope="row">{{ d.name }}</th><td>{{ d.address }}</td>
+        <td>{% if d.console_url %}<a href="{{ d.console_url }}" target="_blank" rel="noopener noreferrer">Open console<span class="visually-hidden"> for {{ d.name }} (opens in a new tab)</span></a>{% else %}<span class="meta">not set</span>{% endif %}</td></tr>
   {% endfor %}
   </tbody>
 </table>

@@ -21,7 +21,7 @@ th { background: #f3f5f7; }
 <h1>Network Automation Portal</h1>
 <p class="sub">Local setup guide: MacBook, Windows laptop, and sharing the code with other engineers</p>
 
-<div class="info"><b>What you are running.</b> A web portal for engineers to start predefined configuration workflows (Cisco ISE, SDA, ACI, NX-OS, Catalyst, Splunk ES, ESXi). It opens in your browser at <code>http://localhost:8000</code>. The portal is in <b>dry-run mode</b>: confirmed workflows are simulated and no device is contacted. All sample workflows are ASSUMPTION samples.</div>
+<div class="info"><b>What you are running.</b> A <b>front-end portal</b> for engineers to request predefined configuration workflows (Cisco ISE, SDA, ACI, NX-OS, Catalyst, Splunk ES, ESXi). The portal does not configure devices and holds no device credentials: it collects and checks the request, shows a preview, records the approval, and hands the request to a separate <b>automation backend</b> that does the work. It opens in your browser at <code>http://localhost:8000</code>. It is in <b>dry-run mode</b>: confirmed requests are simulated and nothing is sent to any backend or device. All sample workflows are ASSUMPTION samples and the backend is not yet connected (TODO).</div>
 
 <table>
 <tr><th>Item</th><th>Value</th></tr>
@@ -172,9 +172,9 @@ git checkout ccr-5a472752-cizl40</pre>
 <h3>F. Good practice for sharing</h3>
 <ul>
 <li>The work is on branch <code>ccr-5a472752-cizl40</code> and is <b>not yet merged</b> into the main branch. Once the team agrees, merge it (pull request) so engineers can clone the default branch without <code>git checkout</code>.</li>
-<li>Do <b>not</b> commit device credentials, <code>.env</code>, <code>config/inventory.yaml</code> or <code>data/</code>. They are already git-ignored.</li>
-<li>Copy <code>config/inventory.example.yaml</code> to <code>config/inventory.yaml</code> and edit it with your real devices (config only, never in code).</li>
-<li>Device credentials are supplied by environment variables, for example <code>PORTAL_CRED_ISE_LAB_USERNAME</code> and <code>PORTAL_CRED_ISE_LAB_PASSWORD</code>, never typed into the portal.</li>
+<li>Do <b>not</b> commit credentials, <code>.env</code>, <code>config/inventory.yaml</code> or <code>data/</code>. They are already git-ignored.</li>
+<li>Copy <code>config/inventory.example.yaml</code> to <code>config/inventory.yaml</code> and edit it with your real devices (config only, never in code). An old <code>credential_ref</code> field is ignored.</li>
+<li>The portal stores no device credentials; the automation backend holds them. Optional <code>console_url</code> entries in <code>inventory.yaml</code> add "Open console" links per device.</li>
 <li>To get new versions, each engineer runs <code>git pull</code> and restarts the portal.</li>
 </ul>
 
@@ -196,9 +196,9 @@ git checkout ccr-5a472752-cizl40</pre>
 <ol>
 <li>Sign in as admin. The dashboard shows 7 platform tiles and both logos.</li>
 <li>Open Cisco NX-OS switches, Create VLAN, choose <code>nxos-lab-1</code>, VLAN 100, name <code>users</code>, click Preview changes.</li>
-<li>Click Confirm (simulate) and watch the log. No device is contacted.</li>
+<li>Click Confirm (simulate) and watch the log. Nothing is sent to a backend or device.</li>
 <li>Users menu: create an engineer. Copy the one-time temporary password (shown once).</li>
 <li>Audit log menu: every action is recorded, with no passwords.</li>
-<li>Optional: <code>python -m pytest</code> should show <code>26 passed</code>.</li>
+<li>Optional: <code>python -m pytest</code> should show <code>29 passed</code>.</li>
 </ol>
 </body></html>

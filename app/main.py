@@ -10,7 +10,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from . import audit, deps, inventory as inventory_mod, workflows as workflows_mod
-from .credentials import CredentialStore
 from .db import Database
 from .runner import RunManager
 from .settings import Settings
@@ -30,13 +29,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     audit.configure(settings.audit_jsonl_file)
     catalog = workflows_mod.load(settings.workflows_file)  # fails fast on a bad config
     inventory = inventory_mod.load(settings.inventory_file)
-    credentials = CredentialStore(settings.secrets_dir)
-    runs = RunManager(settings, db, catalog, inventory, credentials)
+    runs = RunManager(settings, db, catalog, inventory)
     runs.recover_interrupted()
 
     st = app.state
     st.settings, st.db, st.catalog, st.inventory = settings, db, catalog, inventory
-    st.credentials, st.runs = credentials, runs
+    st.runs = runs
     st.templates = Jinja2Templates(directory=str(BASE / "templates"))
     st.templates.env.globals["logos"] = _find_logos()
 

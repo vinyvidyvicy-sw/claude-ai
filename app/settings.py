@@ -39,7 +39,8 @@ class Settings:
     workflows_file: Path
     inventory_file: Path
     audit_jsonl_file: Path | None
-    secrets_dir: Path | None
+    backend_poll_seconds: int
+    backend_timeout_seconds: int
     session_idle_minutes: int
     session_absolute_hours: int
     max_failed_attempts: int
@@ -79,7 +80,8 @@ class Settings:
             workflows_file=path("PORTAL_WORKFLOWS_FILE", Path("config/workflows.yaml")),
             inventory_file=path("PORTAL_INVENTORY_FILE", Path("config/inventory.yaml")),
             audit_jsonl_file=opt_path("PORTAL_AUDIT_JSONL_FILE"),
-            secrets_dir=opt_path("PORTAL_SECRETS_DIR"),
+            backend_poll_seconds=_int(env, "PORTAL_BACKEND_POLL_SECONDS", 3, 0),
+            backend_timeout_seconds=_int(env, "PORTAL_BACKEND_TIMEOUT_SECONDS", 900, 1),
             session_idle_minutes=_int(env, "PORTAL_SESSION_IDLE_MINUTES", 15, 1),
             session_absolute_hours=_int(env, "PORTAL_SESSION_ABSOLUTE_HOURS", 8, 1),
             max_failed_attempts=_int(env, "PORTAL_MAX_FAILED_ATTEMPTS", 5, 1),

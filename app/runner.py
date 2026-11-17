@@ -1,49 +1,66 @@
-"""Run lifecycle: preview (dry-run) -> explicit confirm -> execute -> log.
+"""Run lifecycle: preview -> explicit confirm -> hand off to the automation backend -> follow status.
+
+This portal is a FRONT END. It never connects to a device and holds no device credentials.
+A confirmed request is submitted to an automation backend (e.g. an orchestration/automation
+platform) that performs the change; the portal records the request and mirrors the backend's
+status and log.
 
 Invariants enforced here, not just in the UI:
-  * Nothing executes unless a run row is in status 'previewed' AND was confirmed by its owner.
+  * Nothing is submitted unless a run row is 'previewed' AND confirmed by its owner.
   * The confirmed plan must hash-match what was previewed, and the workflow definition must be
     unchanged since the preview.
-  * In the default execution mode (dry_run) no device is ever contacted.
-  * In live mode a step runs only if its request is defined (not TODO) and an adapter is
-    registered for its interface. No adapters ship with this repository (see README).
+  * In the default mode (dry_run) nothing is sent to the backend at all.
+  * In live mode the request is submitted only if the workflow's dispatch is defined (not TODO)
+    and a backend is registered under that name. No backend ships with this repository.
 """
 from __future__ import annotations
 
 import json
 import logging
 import sqlite3
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
 from datetime import timedelta
 from typing import Any, Callable, Protocol
 
 from . import audit, timeutil
-from .credentials import CredentialStore, Credentials
 from .db import Database
-from .inventory import Device, Inventory
+from .inventory import Inventory
 from .redact import scrub_text
 from .settings import Settings
-from .workflows import Workflow, WorkflowCatalog, build_plan, plan_hash
+from .workflows import WorkflowCatalog, Workflow, build_plan, plan_hash
 
 log = logging.getLogger("portal.runner")
 
 
-class Adapter(Protocol):
-    """Implement one per confirmed device interface (e.g. RESTCONF) and register it.
+@dataclass
+class JobStatus:
+    state: str  # "pending" | "running" | "succeeded" | "failed"
+    lines: list[str] = field(default_factory=list)  # the backend's full log so far
+    summary: str = ""
 
-    `request` is the operator-supplied, already-rendered request mapping from workflows.yaml.
-    Return a short, human-readable result. Do not include secrets in it.
+
+class Backend(Protocol):
+    """Implement once per automation backend and register it with register_backend().
+
+    `job` carries: run_id (use as an idempotency key), requested_by, workflow_id, platform,
+    backend_job (the workflow's dispatch.job), targets, payload. Authenticate to the backend
+    with a service credential read from the environment/secret store inside your implementation;
+    never put it in a log line or return value. Device credentials stay inside the backend.
     """
 
-    def execute(self, device: Device, credentials: Credentials, request: dict[str, Any]) -> str: ...
+    def submit(self, job: dict[str, Any]) -> str: ...  # returns the backend's job id
+
+    def poll(self, job_id: str) -> JobStatus: ...
 
 
-ADAPTERS: dict[str, Adapter] = {}  # interface name -> adapter. TODO: none confirmed yet.
+BACKENDS: dict[str, Backend] = {}  # TODO: none confirmed yet
 
 
-def register_adapter(interface: str, adapter: Adapter) -> None:
-    ADAPTERS[interface] = adapter
+def register_backend(name: str, backend: Backend) -> None:
+    BACKENDS[name] = backend
 
 
 class RunError(Exception):
@@ -52,11 +69,10 @@ class RunError(Exception):
 
 class RunManager:
     def __init__(
-        self, settings: Settings, db: Database, catalog: WorkflowCatalog,
-        inventory: Inventory, credentials: CredentialStore,
+        self, settings: Settings, db: Database, catalog: WorkflowCatalog, inventory: Inventory,
     ):
         self.settings, self.db, self.catalog = settings, db, catalog
-        self.inventory, self.credentials = inventory, credentials
+        self.inventory = inventory
         self._pool = ThreadPoolExecutor(max_workers=settings.max_concurrent_runs, thread_name_prefix="run")
         # Tests replace this with a synchronous call.
         self.submit: Callable[[str], Any] = lambda run_id: self._pool.submit(self._execute, run_id)
@@ -158,47 +174,59 @@ class RunManager:
         ok, summary = True, ""
         try:
             for step in plan["steps"]:
-                self.log(run_id, "info", f"Step {step['id']}: {step['description']} [{step['target']}]")
-                if dry:
-                    self.log(run_id, "info", f"  DRY-RUN: no device contact. Would use interface "
-                                             f"'{step['interface']}'" + ("." if step["request_defined"]
-                                             else " (request definition is TODO)."))
-                    continue
-                ok, summary = self._run_live_step(run_id, step)
-                if not ok:
-                    break
-            if ok:
-                summary = ("Dry-run complete: no changes were sent to any device." if dry
-                           else f"Completed {len(plan['steps'])} step(s).")
+                self.log(run_id, "info", f"Requested: {step['description']} [{step['target']}]")
+            d = plan["dispatch"]
+            if dry:
+                self.log(run_id, "info", "DRY-RUN: nothing was sent to the automation backend "
+                                         "and no device was contacted.")
+                summary = "Dry-run complete: no request was sent to the backend; no device was changed."
+            else:
+                ok, summary = self._dispatch(run_id, run, plan, d)
         except Exception as exc:  # defensive: never leave a run stuck in 'running'
             ok, summary = False, f"Unexpected error: {type(exc).__name__}"
             log.exception("run %s crashed", run_id)
         self._finish(run_id, run, ok, summary)
 
-    def _run_live_step(self, run_id: str, step: dict[str, Any]) -> tuple[bool, str]:
-        if not step["request_defined"]:
-            self.log(run_id, "error", "  Refused: this step's request is TODO in workflows.yaml.")
-            return False, f"Step {step['id']}: request definition is TODO"
-        adapter = ADAPTERS.get(step["interface"])
-        if adapter is None:
-            self.log(run_id, "error", f"  Refused: no adapter registered for interface '{step['interface']}'.")
-            return False, f"Step {step['id']}: no adapter for '{step['interface']}'"
-        device = self.inventory.get(step["target"])
-        if device is None:
-            self.log(run_id, "error", "  Refused: target is not in the inventory.")
-            return False, f"Step {step['id']}: unknown target"
-        creds = self.credentials.get(device.credential_ref)
-        if creds is None:
-            self.log(run_id, "error", f"  Refused: credential '{device.credential_ref}' is not configured.")
-            return False, f"Step {step['id']}: credential not configured"
-        hide = creds.secret_values()
+    def _dispatch(self, run_id: str, run: sqlite3.Row, plan: dict[str, Any], d: dict[str, Any]) -> tuple[bool, str]:
+        if not d["defined"]:
+            self.log(run_id, "error", "Refused: this workflow's dispatch (backend/job) is TODO in workflows.yaml.")
+            return False, "dispatch backend/job is TODO"
+        backend = BACKENDS.get(d["backend"])
+        if backend is None:
+            self.log(run_id, "error", f"Refused: no backend registered under the name '{d['backend']}'.")
+            return False, f"no backend '{d['backend']}'"
+        job = {"run_id": run_id, "requested_by": run["confirmed_by"], "workflow_id": run["workflow_id"],
+               "platform": run["platform"], "backend_job": d["job"],
+               "targets": sorted({s["target"] for s in plan["steps"] if s["target"]}),
+               "payload": d["payload"]}
         try:
-            result = adapter.execute(device, creds, step["request"])
+            job_id = backend.submit(job)
         except Exception as exc:
-            self.log(run_id, "error", f"  Failed: {type(exc).__name__}: {exc}", hide)
-            return False, f"Step {step['id']} failed ({type(exc).__name__})"
-        self.log(run_id, "info", f"  OK: {result}", hide)
-        return True, ""
+            self.log(run_id, "error", f"Backend rejected the request: {type(exc).__name__}: {exc}")
+            return False, f"backend submit failed ({type(exc).__name__})"
+        with self.db.conn() as c:
+            c.execute("UPDATE runs SET backend_job_id=? WHERE id=?", (str(job_id), run_id))
+        self.log(run_id, "info", f"Submitted to backend '{d['backend']}'. Backend job id: {job_id}")
+
+        deadline = time.monotonic() + self.settings.backend_timeout_seconds
+        seen = 0
+        while True:
+            try:
+                st = backend.poll(job_id)
+            except Exception as exc:
+                self.log(run_id, "error", f"Could not read backend status: {type(exc).__name__}: {exc}")
+                return False, f"lost contact with backend; check job {job_id} there"
+            for line in st.lines[seen:]:
+                self.log(run_id, "info", f"[backend] {line}")
+            seen = len(st.lines)
+            if st.state == "succeeded":
+                return True, st.summary or f"Backend job {job_id} succeeded."
+            if st.state == "failed":
+                return False, st.summary or f"Backend job {job_id} failed."
+            if time.monotonic() > deadline:
+                self.log(run_id, "error", "Stopped waiting for the backend. The job may still be running there.")
+                return False, f"timed out waiting; check backend job {job_id}"
+            time.sleep(self.settings.backend_poll_seconds)
 
     def _finish(self, run_id: str, run: sqlite3.Row, ok: bool, summary: str) -> None:
         status = "succeeded" if ok else "failed"
@@ -216,7 +244,7 @@ class RunManager:
             rows = c.execute("SELECT * FROM runs WHERE status='running'").fetchall()
             for r in rows:
                 c.execute("UPDATE runs SET status='failed', finished_at=?, result_summary=? WHERE id=?",
-                          (timeutil.now_iso(), "interrupted by portal restart; verify device state manually", r["id"]))
+                          (timeutil.now_iso(), "interrupted by portal restart; check the backend job for the real outcome", r["id"]))
                 audit.record(c, actor="system", action="workflow.run", target=r["workflow_id"],
                              result="failed", detail=f"run={r['id']}: interrupted by restart")
         return len(rows)
