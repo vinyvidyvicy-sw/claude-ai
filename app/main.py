@@ -41,6 +41,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.settings, st.db, st.catalog, st.inventory = settings, db, catalog, inventory
     st.runs = runs
     st.sources = st_sources
+    st.levels = workflows_mod.load_levels(settings.use_case_sources_file)
     st.templates = Jinja2Templates(directory=str(BASE / "templates"))
     st.templates.env.globals["logos"] = _find_logos()
     st.templates.env.globals["innovation_items"] = list(catalog.innovation.values())

@@ -38,6 +38,12 @@
   --color-slide-gold-light: #f0c14b; /* gold on navy */
   --color-cream: #fbf1dc;
   --color-slide-arrow: #b8821f;     /* decorative arrows */
+  --color-level-low-bg: #f6f9ff;
+  --color-level-mid-bg: #e9f0fb;
+  --color-level-border: #a9b6d6;
+  --color-slide-muted: #55618a;
+  --color-on-navy-muted: #c5cdf0;
+  --color-level-arrow: #6b76a3;
   --color-lane-ai: #e7eefb;
   --color-lane-auto: #eef3fb;
 }

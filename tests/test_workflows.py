@@ -526,3 +526,21 @@ def test_showcase_menu_replaces_riwayat_and_lists_each_use_case(app):
     assert "Level 2" in page.text and page.text.count('class="pill"') == 4
     # run history is still reachable (link on the dashboard)
     assert 'href="/runs"' in html and c.get("/runs").status_code == 200
+
+
+def test_level_explanation_cards_on_the_metrodata_page(app):
+    c = client_for(app)
+    login(c, "bob", "staple battery horse")
+    page = c.get("/inovasi/metrodata-ai-use-case").text
+    for text in ("LEVEL 1", "Assist", "Answers, on demand",
+                 "The system answers questions from your policies and records. Your people make every decision and every change.",
+                 "LEVEL 2", "Accelerate", "Prepares, you decide",
+                 "The system ranks, drafts and warns, so the work arrives prepared. Your team decides what happens next.",
+                 "LEVEL 3", "Act", "Acts within your limits",
+                 "The system runs routine steps inside rules and approval limits you set, and reports every action. Your people set the limits and review.",
+                 "You ask", "It answers", "It prepares", "It warns", "It acts", "It reports", "You review",
+                 "How much the system decides"):
+        assert text in page, text
+    assert page.count("WHAT IT DOES") == 3 and page.count('class="level level-') == 3 and page.count("You decide") == 2
+    # not shown on pages that are not about the use cases
+    assert "LEVEL 1" not in c.get("/inovasi/splunk-innovation").text

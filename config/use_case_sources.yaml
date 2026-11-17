@@ -523,3 +523,35 @@ cases:
         - n: 8
           text: The result and the image are stored for every component
           col: 5
+
+# Penjelasan Level 1, 2 dan 3 (dari gambar lampiran "How much the system decides"); teks sama dengan gambar.
+levels:
+  caption: How much the system decides
+  items:
+    - number: 1
+      name: Assist
+      tagline: Answers, on demand
+      text: The system answers questions from your policies and records. Your people make every decision and every change.
+      icon: help
+      steps:
+        - {text: You ask, style: outline}
+        - {text: It answers, style: solid}
+        - {text: You decide, style: outline}
+    - number: 2
+      name: Accelerate
+      tagline: Prepares, you decide
+      text: The system ranks, drafts and warns, so the work arrives prepared. Your team decides what happens next.
+      icon: chart
+      steps:
+        - {text: It prepares, style: solid}
+        - {text: It warns, style: solid}
+        - {text: You decide, style: outline}
+    - number: 3
+      name: Act
+      tagline: Acts within your limits
+      text: The system runs routine steps inside rules and approval limits you set, and reports every action. Your people set the limits and review.
+      icon: gear
+      steps:
+        - {text: It acts, style: solid}
+        - {text: It reports, style: solid}
+        - {text: You review, style: outline}

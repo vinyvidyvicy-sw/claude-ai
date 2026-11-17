@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "_icons.html" import icon %}
-{% from "_slides.html" import level_pill %}
+{% from "_slides.html" import level_pill, levels as levels_block %}
 {% block title %}{{ item.title }}{% endblock %}
 {% block content %}
 <nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dashboard</a> / Inovasi / <span aria-current="page">{{ item.title }}</span></nav>
@@ -29,6 +29,7 @@
   </li>
   {% endfor %}
 </ul>
+{% if levels %}{{ levels_block(levels) }}{% endif %}
 {% elif launch_url %}
 <p><a class="btn btn-primary" href="/launch/{{ item.id }}" target="_blank" rel="noopener noreferrer">Buka {{ item.title }}<span class="visually-hidden"> (dibuka di tab baru)</span></a></p>
 {% endif %}

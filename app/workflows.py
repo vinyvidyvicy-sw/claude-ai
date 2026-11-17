@@ -529,3 +529,28 @@ def load_sources(path: Path, catalog: WorkflowCatalog) -> dict[str, dict]:
     if problems:
         raise WorkflowConfigError(problems)
     return {cid: dict(case, document=raw.get("document", "")) for cid, case in cases.items()}
+
+
+def load_levels(path: Path) -> dict | None:
+    """Level 1/2/3 explanation cards (text as in the supplied image). None when the file has no `levels`."""
+    if not path.exists():
+        return None
+    raw = (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("levels")
+    if not raw:
+        return None
+    problems = []
+    items = raw.get("items") or []
+    if len(items) != 3:
+        problems.append("levels.items must have exactly 3 entries")
+    for i, it in enumerate(items):
+        for key in ("number", "name", "tagline", "text", "icon", "steps"):
+            if key not in it:
+                problems.append(f"levels.items[{i}]: missing {key!r}")
+        if it.get("icon") not in {"help", "chart", "gear"}:
+            problems.append(f"levels.items[{i}]: icon must be help, chart or gear")
+        for st in it.get("steps") or []:
+            if st.get("style") not in {"solid", "outline"}:
+                problems.append(f"levels.items[{i}]: step style must be solid or outline")
+    if problems:
+        raise WorkflowConfigError(problems)
+    return raw

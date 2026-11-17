@@ -40,3 +40,30 @@
   </div>
 </div>
 {%- endmacro %}
+
+{% macro levels(lv) -%}
+<section class="levels" aria-labelledby="levels-h">
+  <h2 id="levels-h" class="visually-hidden">Perbedaan Level 1, 2 dan 3</h2>
+  <div class="levels-grid">
+    {% for it in lv['items'] %}
+    <article class="level level-{{ it.number }}" id="level-{{ it.number }}">
+      <span class="level-badge" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+        {%- if it.icon == 'help' -%}<circle cx="12" cy="12" r="9.5" fill="currentColor" stroke="none"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.7c0 1.6-2.4 2-2.4 3.5" stroke="#ffffff" stroke-width="2.2"/><path d="M12 17.2h.01" stroke="#ffffff" stroke-width="2.6"/>
+        {%- elif it.icon == 'chart' -%}<path d="M4 20V4M4 20h16"/><path d="M8 15l4-4 3 2.5L20 8"/>
+        {%- else -%}<path d="M10.49,4.55 L10.78,1.87 L13.22,1.87 L13.51,4.55 L16.20,5.67 L18.30,3.98 L20.02,5.70 L18.33,7.80 L19.45,10.49 L22.13,10.78 L22.13,13.22 L19.45,13.51 L18.33,16.20 L20.02,18.30 L18.30,20.02 L16.20,18.33 L13.51,19.45 L13.22,22.13 L10.78,22.13 L10.49,19.45 L7.80,18.33 L5.70,20.02 L3.98,18.30 L5.67,16.20 L4.55,13.51 L1.87,13.22 L1.87,10.78 L4.55,10.49 L5.67,7.80 L3.98,5.70 L5.70,3.98 L7.80,5.67Z M12,8.3 a3.7,3.7 0 1,0 0.01,0 Z" fill="currentColor" fill-rule="evenodd" stroke="none"/>{%- endif -%}
+        </svg>
+      </span>
+      <p class="level-label">LEVEL {{ it.number }}</p>
+      <h3 class="level-name">{{ it.name }}</h3>
+      <p class="level-tag"><em>{{ it.tagline }}</em></p>
+      <p class="level-text">{{ it.text }}</p>
+      <p class="level-label level-does">WHAT IT DOES</p>
+      <ol class="level-steps">{% for st in it.steps %}<li class="lstep lstep-{{ st.style }}">{{ st.text }}</li>{% endfor %}</ol>
+    </article>
+    {% endfor %}
+  </div>
+  <p class="levels-caption"><em>{{ lv.caption }}</em></p>
+  <div class="levels-axis" aria-hidden="true"></div>
+</section>
+{%- endmacro %}

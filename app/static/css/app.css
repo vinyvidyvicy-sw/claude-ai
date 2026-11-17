@@ -316,3 +316,38 @@ h1.with-icon .icon { width: 3.25rem; height: 3.25rem; }
 .flow { gap: 1.2rem; }
 .flow-lines .ln { stroke-width: 2.2; }
 .flow { gap: 2.2rem; }
+
+/* ===== Perbedaan Level 1, 2, 3 (bentuk sama dengan gambar lampiran) ===== */
+.levels { margin: 2.5rem 0 1rem; }
+.levels-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; align-items: end; }
+.level { position: relative; display: flex; flex-direction: column; padding: 1.5rem 1.4rem 1.5rem; border-radius: 1.5rem; color: var(--color-navy); }
+.level-1 { background: var(--color-level-low-bg); border: 2px solid var(--color-level-border); min-height: 25rem; }
+.level-2 { background: var(--color-level-mid-bg); min-height: 28rem; box-shadow: 0 6px 18px rgb(31 42 99 / 12%); }
+.level-3 { background: var(--color-navy); color: var(--color-on-navy); min-height: 31rem; }
+.level-badge { position: absolute; top: 1.2rem; right: 1.4rem; width: 4.2rem; height: 4.2rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--color-bg); color: var(--color-navy); }
+.level-3 .level-badge { background: var(--color-navy-alt); color: var(--color-slide-gold-light); }
+.level-label { margin: 0 0 0.5rem; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.3em; color: var(--color-slide-muted); }
+.level-3 .level-label { color: var(--color-on-navy-muted); }
+.level-name { margin: 0 0 0.9rem; font-size: 2rem; line-height: 1.1; font-weight: 700; color: inherit; }
+.level-tag { margin: 0 0 1rem; color: var(--color-slide-muted); }
+.level-3 .level-tag { color: var(--color-on-navy-muted); }
+.level-text { margin: 0; font-size: 1.1rem; line-height: 1.5; }
+.level-does { margin-top: auto; padding-top: 1.5rem; margin-bottom: 0.6rem; }
+.level-steps { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; flex-wrap: nowrap; gap: 0.5rem 1.5rem; }
+.lstep { position: relative; padding: 0.45rem 0.85rem; border-radius: 999px; font-weight: 700; font-size: 0.88rem; white-space: nowrap; }
+.lstep-solid { background: var(--color-navy); color: var(--color-on-navy); border: 2px solid var(--color-navy); }
+.lstep-outline { background: var(--color-bg); color: var(--color-navy); border: 2px solid var(--color-navy); }
+.level-3 .lstep-solid { background: var(--color-bg); color: var(--color-navy); border-color: var(--color-bg); }
+.level-3 .lstep-outline { background: transparent; color: var(--color-on-navy); border-color: var(--color-on-navy); }
+.lstep:not(:last-child)::after { content: ""; position: absolute; right: -1.4rem; top: 50%; width: 1.2rem; height: 0.95rem; transform: translateY(-50%); background: var(--color-level-arrow); clip-path: polygon(0 30%, 55% 30%, 55% 0, 100% 50%, 55% 100%, 55% 70%, 0 70%); }
+.level-3 .lstep:not(:last-child)::after { background: var(--color-on-navy-muted); }
+.levels-caption { text-align: center; margin: 1.1rem 0 0.4rem; color: var(--color-slide-muted); }
+.levels-axis { position: relative; height: 2px; background: var(--color-level-arrow); margin: 0 0 1rem; }
+.levels-axis::after { content: ""; position: absolute; right: -2px; top: 50%; transform: translateY(-50%); border: 0.35rem solid transparent; border-left: 0.6rem solid var(--color-level-arrow); border-right: 0; }
+@media (max-width: 64rem) {
+  .levels-grid { grid-template-columns: 1fr; align-items: stretch; }
+  .level-1, .level-2, .level-3 { min-height: 0; }
+  .level-text { padding-right: 4.5rem; }
+}
+@media (forced-colors: active) { .level-badge, .lstep { border: 1px solid CanvasText; } }
+@media (max-width: 30rem) { .level-steps { flex-wrap: wrap; } }

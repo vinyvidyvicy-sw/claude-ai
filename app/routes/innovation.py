@@ -15,7 +15,7 @@ def innovation_page(item_id: str, request: Request, p: Principal = Depends(requi
     if item is None:
         raise HTTPException(404)
     cards = [{"uc": u, "launch": bool(st.inventory.launch_url(u.id)), "src": st.sources.get(u.id)} for u in item.use_cases]
-    return render(request, "innovation.html", principal=p, item=item, cards=cards,
+    return render(request, "innovation.html", principal=p, item=item, cards=cards, levels=st.levels if item.use_cases else None,
                   launch_url=st.inventory.launch_url(item_id))
 
 
