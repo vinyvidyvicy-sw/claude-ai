@@ -1,0 +1,10 @@
+# TLS-terminating reverse proxy for the portal.
+# PORTAL_DOMAIN : DNS name users will browse to, e.g. portal.example.internal
+# PORTAL_TLS    : "internal"                 -> Caddy's own CA (intranet; users must trust that CA)
+#                 "admin@yourcompany.example" -> Let's Encrypt (needs public DNS + ports 80/443 reachable)
+#                 "/certs/cert.pem /certs/key.pem" -> your own certificate (mount ./certs)
+{$PORTAL_DOMAIN} {
+	tls {$PORTAL_TLS:internal}
+	encode zstd gzip
+	reverse_proxy portal:8000
+}

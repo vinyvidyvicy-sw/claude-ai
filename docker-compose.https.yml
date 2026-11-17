@@ -1,0 +1,33 @@
+# HTTPS deployment:  docker compose -f docker-compose.https.yml up -d --build
+# Set PORTAL_DOMAIN (and optionally PORTAL_TLS) in a .env file next to this file.
+services:
+  portal:
+    build: .
+    restart: unless-stopped
+    # Not published on the host: only the proxy can reach it, so trusting its forwarded headers is safe.
+    expose: ["8000"]
+    command: ["python", "-m", "uvicorn", "app.main:app_factory", "--factory", "--host", "0.0.0.0",
+              "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
+    environment:
+      PORTAL_COOKIE_SECURE: "true"
+      PORTAL_EXECUTION_MODE: "dry_run"
+      PORTAL_DB_PATH: /srv/portal/data/portal.db
+    volumes:
+      - portal-data:/srv/portal/data
+      # - ./config/inventory.yaml:/srv/portal/config/inventory.yaml:ro
+      # - ./app/static/img:/srv/portal/app/static/img:ro
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [portal]
+    ports: ["80:80", "443:443"]
+    environment:
+      PORTAL_DOMAIN: ${PORTAL_DOMAIN:?set PORTAL_DOMAIN in .env}
+      PORTAL_TLS: ${PORTAL_TLS:-internal}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs:/certs:ro
+      - caddy-data:/data
+volumes:
+  portal-data:
+  caddy-data:

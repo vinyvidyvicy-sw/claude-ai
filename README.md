@@ -82,6 +82,25 @@ For local plain-HTTP development only, set `PORTAL_COOKIE_SECURE=false` (logged 
 | `PORTAL_CRED_<REF>_USERNAME` / `_PASSWORD` | – | Device credentials. `<REF>` is the inventory `credential_ref`, upper-cased, non-alphanumerics → `_` (`ise-lab` → `ISE_LAB`). |
 | `PORTAL_TITLE` | `Network Automation Portal` | Header text. |
 
+### Running as an HTTPS web portal (Docker)
+
+`docker-compose.https.yml` runs the portal behind Caddy, which terminates TLS. The portal itself is not exposed to the network.
+
+```bash
+echo 'PORTAL_DOMAIN=portal.example.internal' > .env      # the DNS name users will open
+# PORTAL_TLS (optional, in .env):
+#   internal                       Caddy's own CA (default; clients must trust it)
+#   admin@yourcompany.example      Let's Encrypt (public DNS, ports 80/443 reachable from the internet)
+#   /certs/cert.pem /certs/key.pem your own certificate: put the files in ./certs
+docker compose -f docker-compose.https.yml build
+docker compose -f docker-compose.https.yml run --rm portal python -m app.cli create-admin admin
+docker compose -f docker-compose.https.yml up -d
+```
+
+Open `https://<PORTAL_DOMAIN>`. The DNS name must resolve to the host; firewall: allow 443 (and 80 for Let's Encrypt) only from the networks that need it.
+This setup keeps `PORTAL_COOKIE_SECURE=true`, so cookies are `Secure` and HSTS is sent. It is **untested in CI** (no container runtime was available while writing it).
+Production checklist: restrict source networks, back up the `portal-data` volume (users + audit log), ship the audit JSONL to your SIEM, supply device credentials through secrets (not git), and keep `PORTAL_EXECUTION_MODE=dry_run` until adapters are written and approved.
+
 ## 3. Login flow and user store
 
 * `users` table: `username` (unique, case-insensitive), `password_hash` (argon2id, per-hash random salt),
