@@ -150,19 +150,18 @@ h1.with-icon .icon { width: 3.25rem; height: 3.25rem; }
 .nav-menu ul a:hover, .nav-menu ul a[aria-current="page"] { background: var(--color-info-bg); }
 @media (max-width: 40rem) { .nav-menu ul { position: static; box-shadow: none; margin-left: 0.5rem; } }
 
-/* Halaman masuk: topologi sebagai latar (opasitas 10%), foto rak di sisi kanan form */
-.login-page { position: relative; isolation: isolate; background: var(--color-bg); }
-.login-page::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: url("/static/img/login-topology.jpg") center / cover no-repeat; opacity: 0.10; }
-.login-layout { display: grid; grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); gap: 2rem; align-items: center; min-height: 60vh; }
+/* Halaman masuk: latar putih; topologi di kiri form, foto rak di kanan form */
+.login-page { background: var(--color-bg); }
+.login-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 22rem) minmax(0, 1fr); gap: 1.5rem; align-items: center; min-height: 60vh; }
 .login-card { margin: 0; }
-.login-rack { margin: 0; }
-.login-rack img { display: block; width: 100%; height: auto; border-radius: 0.6rem; border: 1px solid var(--color-border-soft); box-shadow: 0 4px 18px rgb(0 0 0 / 14%); }
-@media (max-width: 52rem) {
-  .login-layout { grid-template-columns: 1fr; }
-  .login-rack { order: 2; }
+.login-figure { margin: 0; }
+.login-figure img { display: block; width: 100%; height: auto; border-radius: 0.6rem; border: 1px solid var(--color-border-soft); box-shadow: 0 4px 18px rgb(0 0 0 / 14%); }
+@media (max-width: 64rem) {
+  .login-layout { grid-template-columns: 1fr; max-width: 30rem; margin-inline: auto; }
+  .login-card { order: 1; }
+  .login-topology { order: 2; }
+  .login-rack { order: 3; }
 }
-
 /* Halaman masuk: judul di tengah (tebal), logo di sudut kanan atas */
 .login-title { text-align: center; font-weight: 700; font-size: 1.75rem; margin: 0.5rem 0 1.5rem; }
 .login-card h2 { margin-top: 0; font-size: 1.5rem; }

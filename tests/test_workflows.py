@@ -379,14 +379,17 @@ def test_portal_title(app):
     assert "Cisco &amp; Splunk Lab Portal" in html  # autoescaped in HTML
 
 
-def test_login_page_has_topology_background_and_rack_image(app):
+def test_login_page_white_with_topology_left_and_rack_right(app):
     html = client_for(app).get("/login").text
-    assert 'class="login-page"' in html and "/static/img/login-rack.jpg" in html
+    assert 'class="login-page"' in html
+    # DOM (and desktop grid) order: topology, login form, rack
+    i_topo, i_form, i_rack = (html.index(x) for x in ("login-topology.jpg", 'action="/login"', "login-rack.jpg"))
+    assert i_topo < i_form < i_rack
     c = client_for(app)
     for f in ("login-topology.jpg", "login-rack.jpg"):
         assert c.get("/static/img/" + f).status_code == 200
     css = c.get("/static/css/app.css").text
-    assert "login-topology.jpg" in css and "opacity: 0.10" in css
+    assert "opacity: 0.10" not in css and "background: var(--color-bg)" in css  # no faded background any more
 
 
 def test_login_title_centered_bold(app):
