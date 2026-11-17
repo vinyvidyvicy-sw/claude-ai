@@ -117,11 +117,10 @@ def main() -> int:
     tiles = page.count('class="tile"')
     check(tiles == 8, "8 tile platform tampil", f"ditemukan {tiles}")
     check("Mode DRY-RUN" in page, "portal dalam mode DRY-RUN (aman)", "jika Anda memang memakai mode live, abaikan")
-    check("Inovasi" in page and "Metrodata AI Use Case" in page, "menu Inovasi tampil")
 
     # 6. halaman lain dapat dibuka
     for path, text in (("/p/nxos", "Cisco NX-OS"), ("/p/nxos/nxos-create-vlan", "Buat VLAN"),
-                       ("/inovasi/metrodata-ai-use-case", "Joint Planning Session"), ("/runs", "Riwayat")):
+                       ("/runs", "Riwayat")):
         r = get(path)
         check(r.status == 200 and text in r.read().decode(), f"halaman {path} terbuka")
 

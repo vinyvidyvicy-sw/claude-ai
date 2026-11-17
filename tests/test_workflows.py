@@ -316,14 +316,15 @@ def test_logos_shown_only_when_files_exist(app):
         f.unlink()
 
 
-def test_ui_is_indonesian_and_has_innovation_menu(app):
+def test_ui_is_indonesian_and_inovasi_showcase_menus_are_removed(app):
     c = client_for(app)
     login(c, "bob", "staple battery horse")
     html = c.get("/").text
     assert '<html lang="id">' in html and "Pilih platform" in html and "Keluar" in html
-    # Inovasi dropdown with both items
-    assert "Inovasi" in html and "/inovasi/metrodata-ai-use-case" in html and "/inovasi/splunk-innovation" in html
-    assert "Metrodata AI Use Case" in html and "Splunk Innovation" in html
+    nav = html.split('aria-label="Utama"')[1].split("</nav>")[0]
+    assert "Inovasi" not in nav and "Showcase" not in nav and "nav-menu" not in nav     # menus removed from the navigation
+    assert 'href="/inovasi' not in html and 'href="/showcase"' not in html
+    assert ">Dashboard</a>" in nav
 
 
 def test_innovation_pages_and_launch(app):
@@ -510,22 +511,14 @@ def test_card_icons_match_the_pdf_and_no_page_mentions_on_the_list(app):
         assert uc.icon == icon
 
 
-def test_showcase_menu_replaces_riwayat_and_lists_each_use_case(app):
+def test_run_history_link_stays_and_unlinked_pages_still_work_by_url(app):
     c = client_for(app)
     login(c, "bob", "staple battery horse")
     html = c.get("/").text
-    assert ">Showcase</summary>" in html and ">Riwayat</a>" not in html          # nav label changed
-    for title in ("Joint Planning Session", "Go To Market", "Document Procurement", "Trade Finance Document Examination",
-                  "Customer Analytics and Credit Scoring", "Predictive Maintenance for Machines", "Real-time Component Inspection"):
-        assert title in html.split("Showcase</summary>")[1].split("</details>")[0], title   # each use case inside the menu
-    menu = html.split("Showcase</summary>")[1].split("</details>")[0]
-    assert 'href="/showcase"' in menu and 'href="/launch/go-to-market"' in menu
-    assert 'href="/inovasi/metrodata-ai-use-case/banking-trade-finance-document-examination"' in menu
-    page = c.get("/showcase")
-    assert page.status_code == 200 and page.text.count('class="uc-row"') == 7 and "TODO" not in page.text
-    assert "Level 2" in page.text and page.text.count('class="pill"') == 4
-    # run history is still reachable (link on the dashboard)
     assert 'href="/runs"' in html and c.get("/runs").status_code == 200
+    # content is kept in the repo and reachable by direct address, just not linked from the navigation
+    assert c.get("/showcase").status_code == 200
+    assert c.get("/inovasi/metrodata-ai-use-case").status_code == 200
 
 
 def test_level_explanation_cards_on_the_metrodata_page(app):
