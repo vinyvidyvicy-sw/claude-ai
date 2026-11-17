@@ -91,5 +91,5 @@ class Settings:
             execution_mode=mode,
             preview_ttl_minutes=_int(env, "PORTAL_PREVIEW_TTL_MINUTES", 30, 1),
             max_concurrent_runs=_int(env, "PORTAL_MAX_CONCURRENT_RUNS", 4, 1),
-            app_title=env.get("PORTAL_TITLE") or "Network Automation Portal",
+            app_title=env.get("PORTAL_TITLE") or "Cisco & Splunk Lab Portal",
         )

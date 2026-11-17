@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Network Automation Portal - Local Setup Guide</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Cisco & Splunk Lab Portal - Local Setup Guide</title>
 <style>
 @page { size: A4; margin: 18mm 16mm; }
 body { font-family: Helvetica, Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1c2733; }
@@ -18,7 +18,7 @@ th { background: #f3f5f7; }
 .pb { page-break-before: always; }
 </style></head><body>
 
-<h1>Network Automation Portal</h1>
+<h1>Cisco & Splunk Lab Portal</h1>
 <p class="sub">Local setup guide: MacBook, Windows laptop, and sharing the code with other engineers</p>
 
 <div class="info"><b>What you are running.</b> A <b>front-end portal</b> for engineers to request predefined configuration workflows (Cisco ISE, SDA, ACI, NX-OS, Catalyst, Splunk ES, ESXi, Ekahau Design). The portal does not configure devices and holds no device credentials: it collects and checks the request, shows a preview, records the approval, and hands the request to a separate <b>automation backend</b> that does the work. It opens in your browser at <code>http://localhost:8000</code>. It is in <b>dry-run mode</b>: confirmed requests are simulated and nothing is sent to any backend or device. All sample workflows are ASSUMPTION samples and the backend is not yet connected (TODO).</div>

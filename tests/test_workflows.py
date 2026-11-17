@@ -372,3 +372,8 @@ def test_inventory_launcher_overrides_default_and_default_must_be_https(app, tmp
     import pytest
     with pytest.raises(wfm.WorkflowConfigError):
         wfm.load(p)
+
+
+def test_portal_title(app):
+    html = client_for(app).get("/login").text
+    assert "Cisco &amp; Splunk Lab Portal" in html  # autoescaped in HTML

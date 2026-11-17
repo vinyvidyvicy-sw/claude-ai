@@ -1,4 +1,4 @@
-# Network Automation Portal
+# Cisco & Splunk Lab Portal
 
 Internal web portal: an engineer picks a predefined workflow for a platform, fills in a validated form,
 reviews a **dry-run preview**, **explicitly confirms**, and watches the run and its log.
@@ -95,7 +95,7 @@ For local plain-HTTP development only, set `PORTAL_COOKIE_SECURE=false` (logged 
 | `PORTAL_DB_PATH` | `data/portal.db` | SQLite file (created with mode 0600). |
 | `PORTAL_WORKFLOWS_FILE` / `PORTAL_INVENTORY_FILE` | `config/...` | Config locations. |
 | `PORTAL_AUDIT_JSONL_FILE` | unset | Optional JSON-lines mirror of the audit log for a SIEM. |
-| `PORTAL_TITLE` | `Network Automation Portal` | Header text. |
+| `PORTAL_TITLE` | `Cisco & Splunk Lab Portal` | Header text. |
 
 ### Running as an HTTPS web portal (Docker)
 
