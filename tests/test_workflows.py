@@ -508,3 +508,21 @@ def test_card_icons_match_the_pdf_and_no_page_mentions_on_the_list(app):
                       ("manufacturing-predictive-maintenance", "tools"), ("manufacturing-realtime-component-inspection", "search")):
         uc = next(u for i in app.state.catalog.innovation.values() for u in i.use_cases if u.id == uid)
         assert uc.icon == icon
+
+
+def test_showcase_menu_replaces_riwayat_and_lists_each_use_case(app):
+    c = client_for(app)
+    login(c, "bob", "staple battery horse")
+    html = c.get("/").text
+    assert ">Showcase</summary>" in html and ">Riwayat</a>" not in html          # nav label changed
+    for title in ("Joint Planning Session", "Go To Market", "Document Procurement", "Trade Finance Document Examination",
+                  "Customer Analytics and Credit Scoring", "Predictive Maintenance for Machines", "Real-time Component Inspection"):
+        assert title in html.split("Showcase</summary>")[1].split("</details>")[0], title   # each use case inside the menu
+    menu = html.split("Showcase</summary>")[1].split("</details>")[0]
+    assert 'href="/showcase"' in menu and 'href="/launch/go-to-market"' in menu
+    assert 'href="/inovasi/metrodata-ai-use-case/banking-trade-finance-document-examination"' in menu
+    page = c.get("/showcase")
+    assert page.status_code == 200 and page.text.count('class="uc-row"') == 7 and "TODO" not in page.text
+    assert "Level 2" in page.text and page.text.count('class="pill"') == 4
+    # run history is still reachable (link on the dashboard)
+    assert 'href="/runs"' in html and c.get("/runs").status_code == 200

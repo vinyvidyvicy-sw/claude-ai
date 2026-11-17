@@ -31,7 +31,19 @@
             </details>
           </li>
           {% endif %}
-          <li><a href="/runs" {% if request.url.path.startswith('/runs') %}aria-current="page"{% endif %}>Riwayat</a></li>
+          {% if showcase_items %}
+          <li>
+            <details class="nav-menu">
+              <summary {% if request.url.path.startswith('/showcase') %}aria-current="page"{% endif %}>Showcase</summary>
+              <ul>
+                <li><a href="/showcase" {% if request.url.path == '/showcase' %}aria-current="page"{% endif %}>Semua use case</a></li>
+                {% for it in showcase_items %}
+                <li><a href="{{ it.href }}" {% if it.new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ it.title }}{% if it.new_tab %}<span class="visually-hidden"> (dibuka di tab baru)</span>{% endif %}</a></li>
+                {% endfor %}
+              </ul>
+            </details>
+          </li>
+          {% endif %}
           {% if principal.is_admin %}
           <li><a href="/admin/users" {% if request.url.path.startswith('/admin/users') %}aria-current="page"{% endif %}>Pengguna</a></li>
           <li><a href="/admin/audit" {% if request.url.path.startswith('/admin/audit') %}aria-current="page"{% endif %}>Log audit</a></li>

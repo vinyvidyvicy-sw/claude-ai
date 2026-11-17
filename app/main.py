@@ -44,6 +44,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.templates = Jinja2Templates(directory=str(BASE / "templates"))
     st.templates.env.globals["logos"] = _find_logos()
     st.templates.env.globals["innovation_items"] = list(catalog.innovation.values())
+    showcase = []
+    for item in catalog.innovation.values():
+        for uc in item.use_cases:
+            direct = uc.id not in st_sources and bool(inventory.launch_url(uc.id))   # no document text: open the dashboard itself
+            showcase.append({"title": uc.title, "new_tab": direct,
+                             "href": f"/launch/{uc.id}" if direct else f"/inovasi/{item.id}/{uc.id}"})
+    st.templates.env.globals["showcase_items"] = showcase
     st.templates.env.globals.update(
         status_id={"previewed": "pratinjau", "running": "berjalan", "succeeded": "berhasil", "failed": "gagal",
                    "cancelled": "dibatalkan", "expired": "kedaluwarsa"},

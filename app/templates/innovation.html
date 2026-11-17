@@ -10,7 +10,7 @@
 {% if cards %}
 <ul class="uc-rows" aria-label="{{ item.title }}">
   {% for c in cards %}
-  {% set href = ('/inovasi/' ~ item.id ~ '/' ~ c.uc.id) if c.src else ('/launch/' ~ c.uc.id if c.launch else None) %}
+  {% set href = ('/inovasi/' ~ (c.item_id or item.id) ~ '/' ~ c.uc.id) if c.src else ('/launch/' ~ c.uc.id if c.launch else None) %}
   <li class="uc-row">
     {{ icon(c.uc.icon, 28) }}
     <div class="uc-main">

@@ -28,3 +28,11 @@ def use_case_page(item_id: str, uc_id: str, request: Request, p: Principal = Dep
         raise HTTPException(404)
     return render(request, "innovation_usecase.html", principal=p, item=item, uc=uc, src=st.sources.get(uc_id),
                   launch_url=st.inventory.launch_url(uc_id))
+
+
+@router.get("/showcase")
+def showcase(request: Request, p: Principal = Depends(require_user)):
+    st = request.app.state
+    cards = [{"uc": u, "item_id": i.id, "launch": bool(st.inventory.launch_url(u.id)), "src": st.sources.get(u.id)}
+             for i in st.catalog.innovation.values() for u in i.use_cases]
+    return render(request, "showcase.html", principal=p, cards=cards)
