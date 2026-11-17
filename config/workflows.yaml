@@ -72,49 +72,39 @@ innovation:
   - id: metrodata-ai-use-case
     title: Metrodata AI Use Case
     icon: sparkles
-    summary: "Dashboard penerapan AI (use case) Metrodata untuk kegiatan bisnis (perencanaan bersama, strategi pasar, dokumen pengadaan) serta use case perbankan dan manufaktur. Pilih salah satu dashboard di bawah."
+    summary: 'Use case AI Metrodata di BFSI dan manufaktur. Teks pada kartu berasal dari dokumen PDF "Metrodata AI Use Case" dan ditulis apa adanya; kartu yang tidak dibahas dokumen ditandai. Pilih salah satu kartu di bawah.'
     use_cases:
       - id: joint-planning-session
         title: Joint Planning Session
         url: https://metrodata-ai-jps.netlify.app
         icon: meeting
-        assumption: true
-        summary: "Menyiapkan dan memantau sesi perencanaan bersama dengan mitra atau principal: agenda, target, kesepakatan, dan tindak lanjut. AI membantu merangkum pembahasan dan menyoroti prioritas."
+        summary: "Tidak ada dalam dokumen PDF Metrodata AI Use Case."
       - id: go-to-market
         title: Go To Market
         url: https://metrodata-ai-gtm.netlify.app
         icon: rocket
-        assumption: true
-        summary: "Memantau strategi Go To Market: segmen, penawaran, pipeline, dan progres kampanye. AI membantu menganalisis peluang dan menyusun rekomendasi langkah ke pasar."
+        summary: "Tidak ada dalam dokumen PDF Metrodata AI Use Case."
       - id: document-procurement
         title: Document Procurement
         icon: document
         assumption: true
-        summary: "Mengelola dokumen pengadaan: kelengkapan dokumen, status tinjauan, dan tenggat waktu. AI membantu memeriksa kelengkapan dan merangkum isi dokumen."
+        category: BFSI and manufacturing
       - id: banking-trade-finance-document-examination
         title: Trade Finance Document Examination
         category: Banking
         icon: doc-check
-        assumption: true
-        summary: "Pemeriksaan dokumen trade finance (mis. L/C, invoice, bill of lading) di perbankan. AI membantu membaca dokumen, mencocokkan isinya dengan persyaratan, dan menandai ketidaksesuaian untuk ditinjau petugas."
       - id: banking-customer-analytics-credit-scoring
         title: Customer Analytics and Credit Scoring
         category: Banking
         icon: chart
-        assumption: true
-        summary: "Analitik nasabah dan penilaian kredit. AI membantu menyegmentasi nasabah, memperkirakan risiko kredit, dan memberi skor untuk mendukung keputusan pembiayaan."
       - id: manufacturing-predictive-maintenance
         title: Predictive Maintenance for Machines
         category: Manufacturing
         icon: gear
-        assumption: true
-        summary: "Pemeliharaan prediktif untuk mesin pabrik. AI memantau data sensor, memprediksi potensi kerusakan, dan menyarankan jadwal perawatan sebelum terjadi gangguan produksi."
       - id: manufacturing-realtime-component-inspection
         title: Real-time Component Inspection
         category: Manufacturing
         icon: scan
-        assumption: true
-        summary: "Inspeksi komponen secara real time di lini produksi. AI menganalisis gambar kamera untuk mendeteksi cacat komponen dan memberi peringatan langsung."
   - id: splunk-innovation
     title: Splunk Innovation
     icon: bulb

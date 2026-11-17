@@ -14,7 +14,7 @@ def innovation_page(item_id: str, request: Request, p: Principal = Depends(requi
     item = st.catalog.innovation.get(item_id)
     if item is None:
         raise HTTPException(404)
-    cards = [{"uc": u, "launch": bool(st.inventory.launch_url(u.id))} for u in item.use_cases]
+    cards = [{"uc": u, "launch": bool(st.inventory.launch_url(u.id)), "src": st.sources.get(u.id)} for u in item.use_cases]
     return render(request, "innovation.html", principal=p, item=item, cards=cards,
                   launch_url=st.inventory.launch_url(item_id))
 
@@ -26,5 +26,5 @@ def use_case_page(item_id: str, uc_id: str, request: Request, p: Principal = Dep
     uc = next((u for u in (item.use_cases if item else ()) if u.id == uc_id), None)
     if uc is None:
         raise HTTPException(404)
-    return render(request, "innovation_usecase.html", principal=p, item=item, uc=uc,
+    return render(request, "innovation_usecase.html", principal=p, item=item, uc=uc, src=st.sources.get(uc_id),
                   launch_url=st.inventory.launch_url(uc_id))

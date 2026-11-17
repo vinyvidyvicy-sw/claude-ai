@@ -483,3 +483,33 @@ def replace_dispatch(wf: Workflow, **changes: Any) -> Workflow:
     d = wf.dispatch
     new = Dispatch(changes.get("backend", d.backend), changes.get("job", d.job), changes.get("payload", d.payload))
     return replace(wf, dispatch=new)
+
+
+def load_sources(path: Path, catalog: WorkflowCatalog) -> dict[str, dict]:
+    """Source text (copied as-is from a reference document) for innovation use-case cards.
+
+    Returns {use_case_id: entry}. A missing file means no source text. Unknown ids or a malformed structure
+    stop startup, like any other config error.
+    """
+    if not path.exists():
+        return {}
+    raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    known = {u.id for i in catalog.innovation.values() for u in i.use_cases}
+    problems: list[str] = []
+    cases = raw.get("cases") or {}
+    for cid, case in cases.items():
+        if cid not in known:
+            problems.append(f"use_case_sources: unknown use case id {cid!r}")
+            continue
+        if not isinstance(case, dict) or not isinstance(case.get("blocks"), list):
+            problems.append(f"use_case_sources.{cid}: 'blocks' must be a list")
+            continue
+        for k, b in enumerate(case["blocks"]):
+            ok = isinstance(b, dict) and b.get("title") and isinstance(b.get("groups"), list) and all(
+                isinstance(g, dict) and g.get("heading") and isinstance(g.get("items"), list)
+                and all(isinstance(x, str) for x in g["items"]) for g in b["groups"])
+            if not ok:
+                problems.append(f"use_case_sources.{cid}.blocks[{k}]: needs title and groups[heading, items[str]]")
+    if problems:
+        raise WorkflowConfigError(problems)
+    return {cid: dict(case, document=raw.get("document", "")) for cid, case in cases.items()}

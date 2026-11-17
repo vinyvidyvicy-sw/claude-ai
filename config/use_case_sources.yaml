@@ -1,0 +1,449 @@
+# Teks dari dokumen PDF "Metrodata_AI_Use_Case.pdf", disalin apa adanya (bahasa Inggris; tidak diringkas, tidak
+# diterjemahkan, tidak ditambah). Hanya klaim yang tertulis di dokumen yang dimasukkan di sini.
+# Kartu yang tidak dibahas dokumen (joint-planning-session, go-to-market) sengaja tidak punya entri.
+document: 'Metrodata_AI_Use_Case.pdf (13 pages: 1 title, 2-12 content, 13 ''Thank You!'')'
+cases:
+  banking-trade-finance-document-examination:
+    pdf_title: Trade finance document examination
+    pages: 2, 3, 4
+    overview:
+      One-line description: Reads every page of a trade document set, checks it against the credit terms and the bank's rules, and explains each finding.
+      Industry: Banking, 2026
+      Runs on: Dataiku and Amazon Bedrock, hybrid
+      Timeline: 2 months, one use case
+      Level: Level 2
+    blocks:
+    - page: 3
+      title: Banking, trade finance document examination
+      subtitle: Dataiku on the bank's servers with Amazon Bedrock in AWS Jakarta, a 2 month project, in the seven blueprint sections
+      groups:
+      - heading: 1. Problem statement and owner
+        items:
+        - 'Owner: Trade operations, with the checkers'
+        - Every document set examined by hand, page by page
+        - Fields compared across documents and the credit terms
+        - Each discrepancy written up with its page and article
+        - Parties and prices checked one by one
+      - heading: 2. High level solution
+        items:
+        - One examination run for every new document set
+        - Each page is read once, the fields are examined against the credit terms and the bank's rules, and every finding is explained. Checkers accept, overrule and sign.
+        - WHAT IT DOES
+        - Reads every page, its document and fields
+        - Examines the set against the bank's rules
+        - Explains each finding and drafts the notice
+      - heading: 3. Level of trust and human gates
+        items:
+        - Level 2 - Prepares, you decide
+        - The checker accepts or overrules each finding
+        - Trade compliance reviews flagged parties
+        - Trade operations honours or sends the refusal
+      - heading: 4. Data and system readiness
+        items:
+        - Sample document sets with past findings
+        - The bank's matching rules and SOPs
+        - Three Linux VMs on the bank's servers
+        - Private network from the bank to AWS Jakarta
+      - heading: High level solution, architecture
+        items:
+        - 'Document sets land in the to check folder: Document set PDF; Credit terms and rules'
+        - 'Dataiku Automation node on the bank''s servers: Render every page; Check every field'
+        - 'AI reads, examines and explains: Amazon Bedrock Jakarta; Findings and notice'
+        - 'Automation screens and sorts the result: Parties and prices; Clean or corrections'
+        - 'Checker decision and the process log: Accept, overrule, sign; Write once log'
+      - heading: 5. Expected business impact
+        items:
+        - Target of two minutes or less per set
+        - Every finding shown with its page and reason
+        - Checkers review findings, not every page
+      - heading: 6. Effort, duration and team
+        items:
+        - 2 months
+        - one use case, network and AI teams
+      - heading: 7. Sequence and roadmap
+        items:
+        - Phase 1, discovery, FSD and design approval
+        - Phase 2, AWS network, Dataiku and the build
+        - Phase 3, SIT, UAT and handover
+    - page: 4
+      title: Banking, the document examination flow
+      subtitle: The high level solution as lanes, from a new document set to the checker's signature and the process log
+      groups:
+      - heading: Stages
+        items:
+        - 01 Receive
+        - 02 Read
+        - 03 Verify
+        - 04 Examine
+        - 05 Decide
+        - 06 Close
+      - heading: PEOPLE (Trade ops, checker, compliance)
+        items:
+        - (1) Trade operations drops the document set in, or the trade system sends it
+        - (6) Trade compliance reviews any party or price that was flagged
+        - (9) The checker opens it, accepts or overrules each finding, and signs
+        - (10) Trade operations honours or sends the refusal
+      - heading: AI (Reads, examines, explains)
+        items:
+        - '(3) The AI reads each page once: the document it belongs to, and every field'
+        - (7) The AI examines the documents against the rules, explains each finding and drafts the notice
+      - heading: AUTOMATION (Folders, checks, the record)
+        items:
+        - (2) A new file starts the run, and every page is rendered as an image
+        - (4) Pages are grouped into documents, and each field is checked against its page
+        - (5) Parties are screened and prices checked against the market
+        - (8) The document set lands in out / clean, or in out / corrections
+        - (11) Every decision, override and source is written to the process log
+  banking-customer-analytics-credit-scoring:
+    pdf_title: Customer analytics and credit scoring
+    pages: 2, 5, 6
+    overview:
+      One-line description: 'Five models on one platform: customer segments, churn risk, offers for civil servants, customer profitability and credit scores.'
+      Industry: Banking, 2026
+      Runs on: Dataiku, hybrid
+      Timeline: 7 months, five models
+      Level: Level 2
+    blocks:
+    - page: 5
+      title: Banking, customer analytics and credit scoring
+      subtitle: Five models on Dataiku in a hybrid setup, a 7 month project that started in September 2026, in the seven blueprint sections
+      groups:
+      - heading: 1. Problem statement and owner
+        items:
+        - 'Owner: Business and credit units, with IT'
+        - Which customers belong together, and why
+        - Which customers will go dormant or close their account
+        - Which product to offer each civil servant
+        - Fee and interest income and credit risk per customer
+      - heading: 2. High level solution
+        items:
+        - Five models on one Dataiku platform
+        - Customer and transaction history feed five models that segment customers, flag churn, suggest offers, estimate profitability and score credit. Teams act on the scores.
+        - WHAT IT DOES
+        - Segment and churn risk per customer
+        - Next offer and profitability per customer
+        - Credit score per civil servant debtor
+      - heading: 3. Level of trust and human gates
+        items:
+        - Level 2 - Prepares, you decide
+        - Business teams decide who gets which offer
+        - Credit officers decide every application
+        - Risk and IT approve each model release
+      - heading: 4. Data and system readiness
+        items:
+        - Customer and account data in one place
+        - Transaction history for every customer
+        - Loan and repayment history for scoring
+        - Dataiku in a hybrid setup
+      - heading: High level solution, architecture
+        items:
+        - 'Customer, account and transaction data: Core banking data; Loan history'
+        - 'Data preparation in Dataiku: Clean and join; Features per customer'
+        - 'AI models score every customer: Segment and churn; Offer, profit, credit'
+        - 'Automation refreshes data and scores: Scheduled runs; Scores to the teams'
+        - 'Decisions and model monitoring: Offers and loans; Model performance'
+      - heading: 5. Expected business impact
+        items:
+        - Offers matched to each customer segment
+        - Churn risk seen before an account closes
+        - Credit decisions backed by one score
+      - heading: 6. Effort, duration and team
+        items:
+        - 7 months
+        - five models, started September 2026
+      - heading: 7. Sequence and roadmap
+        items:
+        - Phase 1, customer data prepared in Dataiku
+        - Phase 2, the five models built and tested
+        - Phase 3, scores in use and monitored
+    - page: 6
+      title: Banking, the customer analytics flow
+      subtitle: The high level solution as lanes, from customer data to the scores that business and credit teams act on
+      groups:
+      - heading: Stages
+        items:
+        - 01 Collect
+        - 02 Prepare
+        - 03 Segment
+        - 04 Offer
+        - 05 Credit
+        - 06 Monitor
+      - heading: PEOPLE (Business, credit and risk teams)
+        items:
+        - (4) Business teams review the segments and the churn list
+        - (6) Business teams choose which offers go to whom
+        - (8) Credit officers decide each application with the score
+        - (10) Risk and IT review model performance and approve changes
+      - heading: AI (Segments, predicts, scores)
+        items:
+        - (3) Customers grouped into segments and scored for churn risk
+        - (5) Next offer and profitability estimated for each customer
+        - (7) Credit score calculated for each civil servant debtor
+      - heading: AUTOMATION (Loads, prepares, refreshes)
+        items:
+        - (1) Customer, account and transaction data loaded into Dataiku
+        - (2) Data cleaned, joined and turned into features per customer
+        - (9) Scheduled runs refresh the data and the scores
+  manufacturing-predictive-maintenance:
+    pdf_title: Predictive maintenance for machines
+    pages: 2, 7, 8
+    overview:
+      One-line description: Predicts which machine is likely to fail from its machine data, so maintenance can act before a breakdown stops the line.
+      Industry: Manufacturing, 2024
+      Runs on: Amazon SageMaker, cloud
+      Timeline: 5 months, one use case
+      Level: Level 2
+    blocks:
+    - page: 7
+      title: Manufacturing, predictive maintenance for machines
+      subtitle: Amazon SageMaker in the cloud, a 5 month project from November 2024, in the seven blueprint sections
+      groups:
+      - heading: 1. Problem statement and owner
+        items:
+        - 'Owner: Maintenance, with production'
+        - Machines that fail without warning and stop the line
+        - Service done by the calendar, not by condition
+        - Spare parts and crews arranged after the stop
+        - Little time to plan a repair before a failure
+      - heading: 2. High level solution
+        items:
+        - Failure prediction from machine data
+        - Machine data feeds a model on Amazon SageMaker that predicts which machine is likely to fail, so maintenance can plan the repair before the line stops.
+        - WHAT IT DOES
+        - Collects and prepares the machine data
+        - Predicts the risk of failure per machine
+        - Warns maintenance before a breakdown
+      - heading: 3. Level of trust and human gates
+        items:
+        - Level 2 - Prepares, you decide
+        - Maintenance decides every repair
+        - Production agrees any planned stop
+        - Engineers review the model before changes
+      - heading: 4. Data and system readiness
+        items:
+        - Machine sensor readings over time
+        - Failure and repair history per machine
+        - A cloud data store on AWS
+        - A secure link from the plant to AWS
+      - heading: High level solution, architecture
+        items:
+        - 'Machine data from the line: Sensor readings; Repair history'
+        - 'Secure link from the plant to AWS: Data upload; Cloud storage'
+        - 'AI predicts the risk of failure: Trained on SageMaker; Scores new data'
+        - 'Automation sends the warning: Risk per machine; Alert to maintenance'
+        - 'Repair decision and the record: Planned repair; Model monitoring'
+      - heading: 5. Expected business impact
+        items:
+        - Repairs planned before a breakdown
+        - Fewer unplanned stops on the line
+        - Spare parts and crews ready in time
+      - heading: 6. Effort, duration and team
+        items:
+        - 5 months
+        - one use case, from November 2024
+      - heading: 7. Sequence and roadmap
+        items:
+        - Phase 1, machine data connected and prepared
+        - Phase 2, failure model trained and tested
+        - Phase 3, warnings to maintenance, then monitoring
+    - page: 8
+      title: Manufacturing, the predictive maintenance flow
+      subtitle: The high level solution as lanes, from machine data to a planned repair before the line stops
+      groups:
+      - heading: Stages
+        items:
+        - 01 Collect
+        - 02 Learn
+        - 03 Predict
+        - 04 Plan and repair
+        - 05 Record
+      - heading: PEOPLE (Maintenance and production)
+        items:
+        - (6) Maintenance plans the repair, parts and crew with production
+      - heading: AI (Learns, predicts)
+        items:
+        - (3) Failure model trained on the prepared history
+        - (4) New readings scored for the risk of failure
+        - (8) The model retrained as new failures are recorded
+      - heading: AUTOMATION (Collects, warns, records)
+        items:
+        - (1) Sensor readings from each machine sent to the cloud
+        - (2) Readings cleaned and joined with the repair history
+        - (5) A warning sent when a machine's risk is high
+        - (7) Each repair recorded and added to the history
+  manufacturing-realtime-component-inspection:
+    pdf_title: Real time car component inspection (page 2); Manufacturing, real time component inspection (page 9)
+    pages: 2, 9, 10
+    overview:
+      One-line description: Checks every component image from the line camera in real time and flags the parts that need attention.
+      Industry: Manufacturing, 2023
+      Runs on: Amazon SageMaker, cloud
+      Timeline: 4 months, with predictive maintenance on two lines
+      Level: Level 2
+    blocks:
+    - page: 9
+      title: Manufacturing, real time component inspection
+      subtitle: Amazon SageMaker in the cloud, a 4 month project from December 2023 that also covered predictive maintenance on two lines
+      groups:
+      - heading: 1. Problem statement and owner
+        items:
+        - 'Owner: Quality, with production'
+        - Components checked by eye on a moving line
+        - Defects found late, after the next station
+        - Results that differ between inspectors
+        - No image record of what was checked
+      - heading: 2. High level solution
+        items:
+        - Camera inspection with object detection
+        - A camera captures each component and an object detection model on Amazon SageMaker checks every image in real time. Operators act on the flagged parts.
+        - WHAT IT DOES
+        - Captures every component on camera
+        - Detects defects in each image in real time
+        - Flags the parts that need attention
+      - heading: 3. Level of trust and human gates
+        items:
+        - Level 2 - Prepares, you decide
+        - Operators confirm every flagged part
+        - Quality decides on rework or scrap
+        - Engineers review the model before changes
+      - heading: 4. Data and system readiness
+        items:
+        - A camera at each inspection point
+        - Labelled images of good and defective parts
+        - Clear pass and fail criteria
+        - A secure link from the line to AWS
+      - heading: High level solution, architecture
+        items:
+        - 'Camera at the inspection point: Image per component; Line and station'
+        - 'Secure link from the line to AWS: Image upload; Cloud storage'
+        - 'AI detects defects in real time: Trained on SageMaker; Checks each image'
+        - 'Automation marks the result: Passed or flagged; Alert to the operator'
+        - 'Operator decision and the record: Rework or scrap; Image record'
+      - heading: 5. Expected business impact
+        items:
+        - Every component checked the same way
+        - Defects caught at the inspection point
+        - An image record for every component
+      - heading: 6. Effort, duration and team
+        items:
+        - 4 months
+        - two use cases, from December 2023
+      - heading: 7. Sequence and roadmap
+        items:
+        - Phase 1, images collected and labelled
+        - Phase 2, detection model trained and tested
+        - Phase 3, real time inspection on the line
+    - page: 10
+      title: Manufacturing, the inspection flow
+      subtitle: The high level solution as lanes, from the camera image to the decision on each flagged part
+      groups:
+      - heading: Stages
+        items:
+        - 01 Prepare
+        - 02 Capture
+        - 03 Detect
+        - 04 Confirm
+        - 05 Close
+      - heading: PEOPLE (Operators and quality)
+        items:
+        - (1) Quality labels sample images of good and defective parts
+        - (6) The operator checks each flagged part on the line
+        - (7) Quality decides on rework or scrap
+      - heading: AI (Learns, detects)
+        items:
+        - (2) A detection model is trained on the labelled images
+        - (4) Each image is checked for defects in real time
+      - heading: AUTOMATION (Captures, marks, records)
+        items:
+        - (3) The line camera captures each component at the station
+        - (5) The component is marked as passed or flagged
+        - (8) The result and the image are stored for every component
+  document-procurement:
+    pdf_title: Agentic procurement document processing (page 2); BFSI and manufacturing, agentic procurement documents (page 11)
+    pages: 2, 11, 12
+    mapping_note: 'Pemetaan ini adalah ASUMSI: kartu portal "Document Procurement" dipetakan ke use case "Agentic procurement document processing" di dokumen karena satu-satunya use case pengadaan di sana.
+      Dokumen tidak memakai nama "Document Procurement".'
+    overview:
+      One-line description: Extracts the text and fields from every procurement document, and an AI agent flags what needs attention for the team.
+      Industry: BFSI and manufacturing, 2026
+      Runs on: Amazon Textract, Amazon Bedrock, Step Functions, cloud
+      Timeline: 3 months, one use case
+      Level: Level 2
+    blocks:
+    - page: 11
+      title: BFSI and manufacturing, agentic procurement documents
+      subtitle: Amazon Textract, Amazon Bedrock and AWS Step Functions in the cloud, a 3 month project from May 2026, in the seven blueprint sections
+      groups:
+      - heading: 1. Problem statement and owner
+        items:
+        - 'Owner: Procurement team, with finance'
+        - Procurement documents read and keyed in by hand
+        - Fields checked one document at a time
+        - Issues found late, after the document moves on
+        - Checks that differ between whoever reads them
+      - heading: 2. High level solution
+        items:
+        - An AI agent reads and checks every document
+        - Textract pulls the text and fields from each page, an agent on Amazon Bedrock reviews the content and flags issues, and Step Functions runs the steps in order.
+        - WHAT IT DOES
+        - Extracts text and fields from every page
+        - Reviews the content and flags issues
+        - Hands the result to the procurement team
+      - heading: 3. Level of trust and human gates
+        items:
+        - Level 2 - Prepares, you decide
+        - Procurement follows up every flagged item
+        - People approve every order and payment
+        - Engineers review every agent change
+      - heading: 4. Data and system readiness
+        items:
+        - Sample procurement documents per type
+        - The fields and checks for each type
+        - An AWS account with Amazon Bedrock access
+        - One place where the documents arrive
+      - heading: High level solution, architecture
+        items:
+        - 'Procurement documents arrive: Scans and PDFs; Each document type'
+        - 'Amazon Textract reads every page: Text; Fields and tables'
+        - 'AI agent on Amazon Bedrock checks: Review the content; Flag the issues'
+        - 'AWS Step Functions runs the steps: In order; One pipeline'
+        - 'Procurement team follow up: Flagged items; Result record'
+      - heading: 5. Expected business impact
+        items:
+        - Documents read without manual keying
+        - Issues flagged before the document moves on
+        - Every document checked the same way
+      - heading: 6. Effort, duration and team
+        items:
+        - 3 months
+        - one use case, from May 2026
+      - heading: 7. Sequence and roadmap
+        items:
+        - Phase 1, sample documents and checks agreed
+        - Phase 2, extraction and agent built and tested
+        - Phase 3, results to the procurement team
+    - page: 12
+      title: BFSI and manufacturing, the procurement flow
+      subtitle: The high level solution as lanes, from a new procurement document to the team's follow up
+      groups:
+      - heading: Stages
+        items:
+        - 01 Arrive
+        - 02 Read
+        - 03 Check
+        - 04 Hand over
+        - 05 Follow up
+      - heading: PEOPLE (Procurement and finance)
+        items:
+        - (6) The procurement team reviews each flagged item
+        - (7) The team follows up each issue with the supplier
+      - heading: AI (Reads, checks, flags)
+        items:
+        - (2) Text and fields are extracted from every page
+        - (4) The AI agent reviews the content and flags what needs attention
+      - heading: AUTOMATION (Receives, runs, records)
+        items:
+        - (1) A new procurement document arrives and starts the run
+        - (3) The extracted fields are stored with the document
+        - (5) The result and the flags go to the procurement team
+        - (8) Every run and its result is written to the log

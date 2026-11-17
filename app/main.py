@@ -33,12 +33,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         for uc in item.use_cases:
             if uc.url:
                 inventory.set_default_launcher(uc.id, uc.url)
+    st_sources = workflows_mod.load_sources(settings.use_case_sources_file, catalog)
     runs = RunManager(settings, db, catalog, inventory)
     runs.recover_interrupted()
 
     st = app.state
     st.settings, st.db, st.catalog, st.inventory = settings, db, catalog, inventory
     st.runs = runs
+    st.sources = st_sources
     st.templates = Jinja2Templates(directory=str(BASE / "templates"))
     st.templates.env.globals["logos"] = _find_logos()
     st.templates.env.globals["innovation_items"] = list(catalog.innovation.values())

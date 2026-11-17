@@ -191,3 +191,16 @@ h1.with-icon .icon { width: 3.25rem; height: 3.25rem; }
 .login-page .site-footer { margin-top: 1rem; }
 
 .badge-category { color: var(--color-text); background: var(--color-surface); border-color: var(--color-border); }
+
+/* Kartu use case: data dari dokumen */
+.badge-source { color: var(--color-success); }
+.badge-nosource { color: var(--color-warn-text); background: var(--color-warn-bg); }
+.mini { margin: 0.5rem 0; font-size: 0.9rem; }
+.mini div { margin-bottom: 0.25rem; }
+.mini dt { display: inline; color: var(--color-muted); }
+.mini dt::after { content: ": "; }
+.mini dd { display: inline; margin: 0; font-weight: 600; }
+.src-grid { display: grid; gap: 1rem 1.5rem; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+.src-group h3 { font-size: 1rem; margin: 0 0 0.35rem; color: var(--color-accent); }
+.src-group ul { margin: 0; padding-left: 1.2rem; }
+.src-group li { margin-bottom: 0.3rem; }

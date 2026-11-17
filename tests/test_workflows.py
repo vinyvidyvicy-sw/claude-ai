@@ -333,15 +333,21 @@ def test_innovation_pages_and_launch(app):
     assert page.status_code == 200
     for title in ("Joint Planning Session", "Go To Market", "Document Procurement"):
         assert title in page.text
-    assert page.text.count('class="icon"') == 8 and page.text.count("ASUMSI") == 7  # page icon + 7 cards
+    assert page.text.count('class="icon"') == 8   # page icon + 7 cards
     for title in ("Trade Finance Document Examination", "Customer Analytics and Credit Scoring",
                   "Predictive Maintenance for Machines", "Real-time Component Inspection"):
         assert title in page.text
-    assert page.text.count("badge-category") == 4 and "Banking" in page.text and "Manufacturing" in page.text
-    assert page.text.count("Belum disiapkan (TODO)") == 5 and page.text.count("Dibuka di tab baru") == 2  # only GTM and JPS have addresses
+    assert page.text.count("badge-category") == 5 and "Banking" in page.text and "Manufacturing" in page.text
+    # five cards come from the PDF, two (JPS, GTM) are explicitly marked as not in the document
+    assert page.text.count("Dari dokumen") == 5 and page.text.count("Tidak ada di dokumen") == 2
+    assert "Reads every page of a trade document set, checks it against the credit terms and the bank&#39;s rules, and explains each finding." in page.text
+    assert page.text.count("Tidak ada dalam dokumen PDF Metrodata AI Use Case.") == 2
+    assert page.text.count("Alamat dasbor: belum disiapkan (TODO)") == 5 and page.text.count("Dibuka di tab baru") == 2
     assert c.get("/launch/metrodata-ai-use-case").headers["location"] == "/inovasi/metrodata-ai-use-case"
-    # each dashboard has its own page; not configured -> TODO, launch falls back to that page
-    assert "belum dikonfigurasi" in c.get("/inovasi/metrodata-ai-use-case/document-procurement").text
+    # each card has its own page; not configured -> TODO, launch falls back to that page
+    detail = c.get("/inovasi/metrodata-ai-use-case/document-procurement").text
+    assert "belum dikonfigurasi" in detail and "Pemetaan ini adalah ASUMSI" in detail
+    assert "Textract pulls the text and fields from each page" in detail
     assert c.get("/launch/document-procurement").headers["location"] == "/inovasi/metrodata-ai-use-case/document-procurement"
     app.state.inventory._launchers["document-procurement"] = "https://docs.example.invalid/"
     assert 'href="/launch/document-procurement"' in c.get("/inovasi/metrodata-ai-use-case").text
@@ -427,3 +433,26 @@ def test_device_console_link_is_audited(app):
     assert tuple(row) == ("bob", "device.console_open", "nxos-lab-1")
     assert c.get("/console/ise-lab-1").status_code == 404   # no console_url configured
     assert c.get("/console/tidak-ada").status_code == 404
+
+
+def test_use_case_pages_show_pdf_text_as_is_and_unknowns_say_so(app):
+    c = client_for(app)
+    login(c, "bob", "staple battery horse")
+    page = c.get("/inovasi/metrodata-ai-use-case/banking-trade-finance-document-examination").text
+    for text in ("Owner: Trade operations, with the checkers", "Target of two minutes or less per set",
+                 "Three Linux VMs on the bank&#39;s servers", "Phase 3, SIT, UAT and handover",
+                 "Banking, the document examination flow", "(11) Every decision, override and source is written to the process log",
+                 "Dataiku and Amazon Bedrock, hybrid"):
+        assert text in page, text
+    assert "Halaman 3:" in page and "Halaman 4:" in page
+    for uid in ("joint-planning-session", "go-to-market"):
+        p = c.get(f"/inovasi/metrodata-ai-use-case/{uid}").text
+        assert "Tidak ada dalam dokumen PDF Metrodata AI Use Case." in p and "Dari dokumen" not in p
+
+
+def test_every_source_text_line_is_present_in_the_yaml_and_matches_the_catalog(app):
+    st = app.state
+    ids = {u.id for i in st.catalog.innovation.values() for u in i.use_cases}
+    assert set(st.sources) <= ids and set(st.sources) == ids - {"joint-planning-session", "go-to-market"}
+    for cid, case in st.sources.items():
+        assert case["pages"] and case["blocks"] and case["overview"]["One-line description"]

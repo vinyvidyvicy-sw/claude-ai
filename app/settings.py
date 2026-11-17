@@ -38,6 +38,7 @@ class Settings:
     db_path: Path
     workflows_file: Path
     inventory_file: Path
+    use_case_sources_file: Path
     audit_jsonl_file: Path | None
     backend_poll_seconds: int
     backend_timeout_seconds: int
@@ -79,6 +80,7 @@ class Settings:
             db_path=path("PORTAL_DB_PATH", Path("data/portal.db")),
             workflows_file=path("PORTAL_WORKFLOWS_FILE", Path("config/workflows.yaml")),
             inventory_file=path("PORTAL_INVENTORY_FILE", Path("config/inventory.yaml")),
+            use_case_sources_file=path("PORTAL_USE_CASE_SOURCES_FILE", Path("config/use_case_sources.yaml")),
             audit_jsonl_file=opt_path("PORTAL_AUDIT_JSONL_FILE"),
             backend_poll_seconds=_int(env, "PORTAL_BACKEND_POLL_SECONDS", 3, 0),
             backend_timeout_seconds=_int(env, "PORTAL_BACKEND_TIMEOUT_SECONDS", 900, 1),
