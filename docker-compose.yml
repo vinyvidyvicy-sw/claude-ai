@@ -1,0 +1,17 @@
+services:
+  portal:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"     # localhost only; put a TLS proxy in front for anything else
+    environment:
+      # Local testing over http://localhost. For HTTPS deployments set this to "true".
+      PORTAL_COOKIE_SECURE: "false"
+      PORTAL_EXECUTION_MODE: "dry_run"
+      PORTAL_DB_PATH: /srv/portal/data/portal.db
+    volumes:
+      - portal-data:/srv/portal/data
+      # Optional: use your own inventory / logos
+      # - ./config/inventory.yaml:/srv/portal/config/inventory.yaml:ro
+      # - ./app/static/img:/srv/portal/app/static/img:ro
+volumes:
+  portal-data:
