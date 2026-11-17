@@ -333,8 +333,12 @@ def test_innovation_pages_and_launch(app):
     assert page.status_code == 200
     for title in ("Joint Planning Session", "Go To Market", "Document Procurement"):
         assert title in page.text
-    assert page.text.count('class="icon"') == 4 and page.text.count("ASUMSI") == 3  # page icon + 3 cards
-    assert page.text.count("Belum disiapkan (TODO)") == 1 and page.text.count("Dibuka di tab baru") == 2  # only Document Procurement lacks an address
+    assert page.text.count('class="icon"') == 8 and page.text.count("ASUMSI") == 7  # page icon + 7 cards
+    for title in ("Trade Finance Document Examination", "Customer Analytics and Credit Scoring",
+                  "Predictive Maintenance for Machines", "Real-time Component Inspection"):
+        assert title in page.text
+    assert page.text.count("badge-category") == 4 and "Banking" in page.text and "Manufacturing" in page.text
+    assert page.text.count("Belum disiapkan (TODO)") == 5 and page.text.count("Dibuka di tab baru") == 2  # only GTM and JPS have addresses
     assert c.get("/launch/metrodata-ai-use-case").headers["location"] == "/inovasi/metrodata-ai-use-case"
     # each dashboard has its own page; not configured -> TODO, launch falls back to that page
     assert "belum dikonfigurasi" in c.get("/inovasi/metrodata-ai-use-case/document-procurement").text

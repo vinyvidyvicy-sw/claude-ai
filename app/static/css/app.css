@@ -189,3 +189,5 @@ h1.with-icon .icon { width: 3.25rem; height: 3.25rem; }
 .login-page .login-figure img { border: 0; border-radius: 0; box-shadow: none; }
 .login-page .login-figure figcaption { padding: 0.75rem 1rem; font-weight: 600; font-size: 0.95rem; border-top: 1px solid var(--color-border-soft); }
 .login-page .site-footer { margin-top: 1rem; }
+
+.badge-category { color: var(--color-text); background: var(--color-surface); border-color: var(--color-border); }

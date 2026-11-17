@@ -28,5 +28,13 @@ devices:
 #     url: https://<address-of-go-to-market-dashboard>
 #   document-procurement:
 #     url: https://<address-of-document-procurement-dashboard>
+#   banking-trade-finance-document-examination:
+#     url: https://<address>
+#   banking-customer-analytics-credit-scoring:
+#     url: https://<address>
+#   manufacturing-predictive-maintenance:
+#     url: https://<address>
+#   manufacturing-realtime-component-inspection:
+#     url: https://<address>
 #   splunk-innovation:             # menu Inovasi
 #     url: https://<address-of-splunk-innovation-page>

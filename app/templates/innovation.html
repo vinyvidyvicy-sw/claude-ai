@@ -17,7 +17,7 @@
              {% if c.launch %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ c.uc.title }}{% if c.launch %}<span class="visually-hidden"> (dibuka di tab baru)</span>{% endif %}</a></h2>
     </div>
     <p>{{ c.uc.summary }}</p>
-    <p class="badges">{% if c.uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>
+    <p class="badges">{% if c.uc.category %}<span class="badge badge-category">{{ c.uc.category }}</span>{% endif %}{% if c.uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>
     <p class="meta">{% if c.launch %}Dibuka di tab baru{% else %}Belum disiapkan (TODO){% endif %}</p>
   </li>
   {% endfor %}

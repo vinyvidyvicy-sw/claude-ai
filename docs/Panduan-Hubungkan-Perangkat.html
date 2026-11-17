@@ -59,7 +59,7 @@ sudo -u portal -H nano /opt/portal/claude-ai/config/inventory.yaml
   document-procurement:
     url: https://&lt;alamat-dashboard&gt;
   splunk-innovation:
-    url: https://&lt;alamat-halaman&gt;</pre><p>Go To Market dan Joint Planning Session sudah punya alamat bawaan di <code>config/workflows.yaml</code>; entri di <code>inventory.yaml</code> akan menimpanya bila diisi. Kunci yang tersedia: <code>ekahau</code>, <code>metrodata-ai-use-case</code>, <code>joint-planning-session</code>, <code>go-to-market</code>, <code>document-procurement</code>, <code>splunk-innovation</code>.</p></div><div class="step"><span class="n">5</span><b>Mulai ulang portal.</b><pre># Server:
+    url: https://&lt;alamat-halaman&gt;</pre><p>Go To Market dan Joint Planning Session sudah punya alamat bawaan di <code>config/workflows.yaml</code>; entri di <code>inventory.yaml</code> akan menimpanya bila diisi. Kunci yang tersedia: <code>ekahau</code>, <code>metrodata-ai-use-case</code>, <code>joint-planning-session</code>, <code>go-to-market</code>, <code>document-procurement</code>, <code>banking-trade-finance-document-examination</code>, <code>banking-customer-analytics-credit-scoring</code>, <code>manufacturing-predictive-maintenance</code>, <code>manufacturing-realtime-component-inspection</code>, <code>splunk-innovation</code>.</p></div><div class="step"><span class="n">5</span><b>Mulai ulang portal.</b><pre># Server:
 sudo systemctl restart portal
 sudo journalctl -u portal -n 20 --no-pager     # tidak ada error
 

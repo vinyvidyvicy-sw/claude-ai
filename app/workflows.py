@@ -19,7 +19,7 @@ import yaml
 from .inventory import Inventory
 from .redact import is_secret_name
 
-ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi", "sparkles", "bulb", "meeting", "rocket", "document"}
+ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi", "sparkles", "bulb", "meeting", "rocket", "document", "doc-check", "chart", "gear", "scan"}
 PARAM_TYPES = {"string", "int", "bool", "enum", "ip", "cidr", "hostname", "device"}
 RISKS = ("low", "medium", "high")
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,40}$")
@@ -115,6 +115,7 @@ class UseCase:
     summary: str  # short explanation shown on the card
     icon: str = "bulb"
     assumption: bool = False
+    category: str = ""  # optional label shown on the card, e.g. an industry
     url: str | None = None  # default https address; inventory.yaml `launchers:` overrides it
 
 
@@ -185,7 +186,7 @@ def load(path: Path) -> WorkflowCatalog:
             try:
                 u = UseCase(id=str(uc["id"]), title=str(uc["title"]), summary=str(uc.get("summary", "")),
                             icon=str(uc.get("icon", "bulb")), assumption=bool(uc.get("assumption", False)),
-                            url=str(uc["url"]) if uc.get("url") else None)
+                            category=str(uc.get("category", "")), url=str(uc["url"]) if uc.get("url") else None)
             except (KeyError, TypeError):
                 problems.append(f"innovation[{i}].use_cases[{j}]: id and title are required")
                 continue
