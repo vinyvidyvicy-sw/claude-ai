@@ -542,5 +542,10 @@ def test_level_explanation_cards_on_the_metrodata_page(app):
                  "How much the system decides"):
         assert text in page, text
     assert page.count("WHAT IT DOES") == 3 and page.count('class="level level-') == 3 and page.count("You decide") == 2
+    assert page.index("LEVEL 1") < page.index('class="uc-row"')          # explanation sits above the use-case rows
+    for uc_id in ("banking-trade-finance-document-examination", "manufacturing-predictive-maintenance", "go-to-market", "document-procurement"):
+        d = c.get(f"/inovasi/metrodata-ai-use-case/{uc_id}").text
+        assert d.count('class="level level-') == 3 and "How much the system decides" in d
+        assert d.index("LEVEL 1") < (d.index('class="slide-summary"') if 'class="slide-summary"' in d else len(d))   # at the top of each use case
     # not shown on pages that are not about the use cases
     assert "LEVEL 1" not in c.get("/inovasi/splunk-innovation").text

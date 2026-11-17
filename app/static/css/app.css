@@ -344,10 +344,14 @@ h1.with-icon .icon { width: 3.25rem; height: 3.25rem; }
 .levels-caption { text-align: center; margin: 1.1rem 0 0.4rem; color: var(--color-slide-muted); }
 .levels-axis { position: relative; height: 2px; background: var(--color-level-arrow); margin: 0 0 1rem; }
 .levels-axis::after { content: ""; position: absolute; right: -2px; top: 50%; transform: translateY(-50%); border: 0.35rem solid transparent; border-left: 0.6rem solid var(--color-level-arrow); border-right: 0; }
-@media (max-width: 64rem) {
+@media (max-width: 75rem) {
   .levels-grid { grid-template-columns: 1fr; align-items: stretch; }
   .level-1, .level-2, .level-3 { min-height: 0; }
   .level-text { padding-right: 4.5rem; }
 }
 @media (forced-colors: active) { .level-badge, .lstep { border: 1px solid CanvasText; } }
 @media (max-width: 30rem) { .level-steps { flex-wrap: wrap; } }
+.levels { margin: 1.5rem 0 2.5rem; }
+.level-steps { gap: 0.5rem 1.25rem; }
+.lstep { padding: 0.4rem 0.7rem; font-size: 0.85rem; }
+.lstep:not(:last-child)::after { right: -1.15rem; width: 1rem; }

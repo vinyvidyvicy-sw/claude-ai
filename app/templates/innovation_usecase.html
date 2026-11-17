@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% from "_icons.html" import icon %}
-{% from "_slides.html" import blueprint, flow, level_pill %}
+{% from "_slides.html" import blueprint, flow, level_pill, levels as levels_block %}
 {% block title %}{{ uc.title }}{% endblock %}
 {% block content %}
 <nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dashboard</a> / Inovasi / <a href="/inovasi/{{ item.id }}">{{ item.title }}</a> / <span aria-current="page">{{ uc.title }}</span></nav>
 <h1 class="with-icon">{{ icon(uc.icon, 34) }}<span>{{ uc.title }}</span></h1>
 {% if uc.category %}<p class="badges"><span class="badge badge-category">{{ uc.category }}</span></p>{% endif %}
+
+{% if levels %}{{ levels_block(levels) }}{% endif %}
 
 {% if src %}
   <div class="slide-summary">

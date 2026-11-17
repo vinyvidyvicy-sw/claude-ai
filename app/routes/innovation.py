@@ -26,7 +26,7 @@ def use_case_page(item_id: str, uc_id: str, request: Request, p: Principal = Dep
     uc = next((u for u in (item.use_cases if item else ()) if u.id == uc_id), None)
     if uc is None:
         raise HTTPException(404)
-    return render(request, "innovation_usecase.html", principal=p, item=item, uc=uc, src=st.sources.get(uc_id),
+    return render(request, "innovation_usecase.html", principal=p, item=item, uc=uc, src=st.sources.get(uc_id), levels=st.levels,
                   launch_url=st.inventory.launch_url(uc_id))
 
 

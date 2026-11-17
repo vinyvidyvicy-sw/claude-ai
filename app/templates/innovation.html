@@ -8,6 +8,7 @@
 <p class="lead">{{ item.summary }}</p>
 
 {% if cards %}
+{% if levels %}{{ levels_block(levels) }}{% endif %}
 <ul class="uc-rows" aria-label="{{ item.title }}">
   {% for c in cards %}
   {% set href = ('/inovasi/' ~ (c.item_id or item.id) ~ '/' ~ c.uc.id) if c.src else ('/launch/' ~ c.uc.id if c.launch else None) %}
@@ -29,7 +30,6 @@
   </li>
   {% endfor %}
 </ul>
-{% if levels %}{{ levels_block(levels) }}{% endif %}
 {% elif launch_url %}
 <p><a class="btn btn-primary" href="/launch/{{ item.id }}" target="_blank" rel="noopener noreferrer">Buka {{ item.title }}<span class="visually-hidden"> (dibuka di tab baru)</span></a></p>
 {% endif %}
