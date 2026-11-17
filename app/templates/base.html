@@ -21,7 +21,7 @@
           <li><a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>Dasbor</a></li>
           {% if innovation_items %}
           <li>
-            <details class="nav-menu" {% if request.url.path.startswith('/inovasi') %}open{% endif %}>
+            <details class="nav-menu">
               <summary {% if request.url.path.startswith('/inovasi') %}aria-current="page"{% endif %}>Inovasi</summary>
               <ul>
                 {% for it in innovation_items %}

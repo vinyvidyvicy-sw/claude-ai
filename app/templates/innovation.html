@@ -5,7 +5,24 @@
 <nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dasbor</a> / Inovasi / <span aria-current="page">{{ item.title }}</span></nav>
 <h1 class="with-icon">{{ icon(item.icon, 34) }}<span>{{ item.title }}</span></h1>
 <p class="lead">{{ item.summary }}</p>
-{% if launch_url %}
+
+{% if cards %}
+<h2>Dasbor</h2>
+<ul class="tiles" aria-label="Dasbor {{ item.title }}">
+  {% for c in cards %}
+  <li class="tile">
+    <div class="tile-head">
+      {{ icon(c.uc.icon, 30) }}
+      <h2><a class="tile-link" href="{{ '/launch/' ~ c.uc.id if c.launch else '/inovasi/' ~ item.id ~ '/' ~ c.uc.id }}"
+             {% if c.launch %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ c.uc.title }}{% if c.launch %}<span class="visually-hidden"> (dibuka di tab baru)</span>{% endif %}</a></h2>
+    </div>
+    <p>{{ c.uc.summary }}</p>
+    <p class="badges">{% if c.uc.assumption %}<span class="badge badge-assume">ASUMSI</span>{% endif %}</p>
+    <p class="meta">{% if c.launch %}Dibuka di tab baru{% else %}Belum disiapkan (TODO){% endif %}</p>
+  </li>
+  {% endfor %}
+</ul>
+{% elif launch_url %}
 <p><a class="btn btn-primary" href="/launch/{{ item.id }}" target="_blank" rel="noopener noreferrer">Buka {{ item.title }}<span class="visually-hidden"> (dibuka di tab baru)</span></a></p>
 {% else %}
 <p class="todo"><strong>TODO:</strong> alamat untuk {{ item.title }} belum dikonfigurasi. Administrator menambahkannya di <code>config/inventory.yaml</code> pada bagian <code>launchers:</code> dengan kunci <code>{{ item.id }}</code> (lihat <code>config/inventory.example.yaml</code>) lalu memulai ulang portal.</p>

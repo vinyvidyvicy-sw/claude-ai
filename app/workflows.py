@@ -10,7 +10,7 @@ import hashlib
 import ipaddress
 import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +19,7 @@ import yaml
 from .inventory import Inventory
 from .redact import is_secret_name
 
-ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi", "sparkles", "bulb"}
+ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi", "sparkles", "bulb", "meeting", "rocket", "document"}
 PARAM_TYPES = {"string", "int", "bool", "enum", "ip", "cidr", "hostname", "device"}
 RISKS = ("low", "medium", "high")
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,40}$")
@@ -108,12 +108,23 @@ class Platform:
 
 
 @dataclass(frozen=True)
+class UseCase:
+    """A card on an innovation item's dashboard page. Opens an external dashboard (URL in inventory.yaml `launchers:`)."""
+    id: str
+    title: str
+    summary: str  # short explanation shown on the card
+    icon: str = "bulb"
+    assumption: bool = False
+
+
+@dataclass(frozen=True)
 class InnovationItem:
     """An entry under the Inovasi menu. Opens an external page; its https URL is in inventory.yaml `launchers:`."""
     id: str
     title: str
     summary: str
     icon: str = "bulb"
+    use_cases: tuple[UseCase, ...] = ()
 
 
 @dataclass
@@ -154,6 +165,7 @@ def load(path: Path) -> WorkflowCatalog:
             icon=str(p.get("icon", "")),
         )
 
+    used_ids: set[str] = set(catalog.platforms)
     for i, it in enumerate(raw.get("innovation") or []):
         try:
             item = InnovationItem(id=str(it["id"]), title=str(it["title"]), summary=str(it.get("summary", "")),
@@ -167,6 +179,24 @@ def load(path: Path) -> WorkflowCatalog:
             problems.append(f"innovation[{i}]: unknown icon {item.icon!r}")
         if item.id in catalog.innovation or item.id in catalog.platforms:
             problems.append(f"innovation[{i}]: duplicate id {item.id!r}")
+        ucs = []
+        for j, uc in enumerate(it.get("use_cases") or []):
+            try:
+                u = UseCase(id=str(uc["id"]), title=str(uc["title"]), summary=str(uc.get("summary", "")),
+                            icon=str(uc.get("icon", "bulb")), assumption=bool(uc.get("assumption", False)))
+            except (KeyError, TypeError):
+                problems.append(f"innovation[{i}].use_cases[{j}]: id and title are required")
+                continue
+            if not ID_RE.match(u.id):
+                problems.append(f"innovation[{i}].use_cases[{j}]: id must match {ID_RE.pattern}")
+            if u.icon not in ICONS:
+                problems.append(f"innovation[{i}].use_cases[{j}]: unknown icon {u.icon!r}")
+            if u.id in used_ids:
+                problems.append(f"innovation[{i}].use_cases[{j}]: duplicate id {u.id!r}")
+            used_ids.add(u.id)
+            ucs.append(u)
+        item = replace(item, use_cases=tuple(ucs))
+        used_ids.add(item.id)
         catalog.innovation[item.id] = item
 
     for i, w in enumerate(raw.get("workflows") or []):

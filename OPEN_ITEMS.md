@@ -14,7 +14,8 @@
 
 ## B. Questions on scope
 11. "VMware ESXi management server": standalone ESXi hosts, or vCenter?
-11c. Menu Inovasi: what should "Metrodata AI Use Case" and "Splunk Innovation" show, and what are their https addresses (`launchers.metrodata-ai-use-case.url`, `launchers.splunk-innovation.url`)? Should more items be added? Should the rest of the documentation (README, PDF) also be translated?
+11c. Metrodata AI Use Case: the descriptions of Joint Planning Session, Go To Market and Document Procurement are ASSUMPTION drafts; confirm what each dashboard really does and give its https address.
+11d. Menu Inovasi: what should "Metrodata AI Use Case" and "Splunk Innovation" show, and what are their https addresses (`launchers.metrodata-ai-use-case.url`, `launchers.splunk-innovation.url`)? Should more items be added? Should the rest of the documentation (README, PDF) also be translated?
 11b. Ekahau Design (launcher tile): the https address of the Ekahau environment on VMware (`launchers.ekahau.url`), the Ekahau product/version, and how users reach it (web, remote-desktop gateway, other). Should a launch require a specific role? Single sign-on into Ekahau is not provided.
 12. Which platforms' workflows are read-only vs write? Which need a **second approver** (e.g. disabling a Splunk correlation search, ESXi maintenance mode)?
 13. Should engineers see all runs (current ASSUMPTION) or only their own?

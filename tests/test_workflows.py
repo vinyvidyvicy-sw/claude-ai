@@ -330,14 +330,26 @@ def test_innovation_pages_and_launch(app):
     c = client_for(app)
     login(c, "bob", "staple battery horse")
     page = c.get("/inovasi/metrodata-ai-use-case")
-    assert page.status_code == 200 and "belum dikonfigurasi" in page.text
+    assert page.status_code == 200
+    for title in ("Joint Planning Session", "Go To Market", "Document Procurement"):
+        assert title in page.text
+    assert page.text.count('class="icon"') == 4 and page.text.count("ASUMSI") == 3  # page icon + 3 cards
+    assert "Belum disiapkan (TODO)" in page.text
     assert c.get("/launch/metrodata-ai-use-case").headers["location"] == "/inovasi/metrodata-ai-use-case"
+    # each dashboard has its own page; not configured -> TODO, launch falls back to that page
+    assert "belum dikonfigurasi" in c.get("/inovasi/metrodata-ai-use-case/go-to-market").text
+    assert c.get("/launch/go-to-market").headers["location"] == "/inovasi/metrodata-ai-use-case/go-to-market"
+    app.state.inventory._launchers["document-procurement"] = "https://docs.example.invalid/"
+    assert 'href="/launch/document-procurement"' in c.get("/inovasi/metrodata-ai-use-case").text
+    r = c.get("/launch/document-procurement")
+    assert r.status_code == 303 and r.headers["location"] == "https://docs.example.invalid/"
+    assert c.get("/inovasi/metrodata-ai-use-case/nope").status_code == 404
     app.state.inventory._launchers["splunk-innovation"] = "https://splunk-innovation.example.invalid/"
     page = c.get("/inovasi/splunk-innovation")
     assert 'href="/launch/splunk-innovation"' in page.text and 'target="_blank"' in page.text
     r = c.get("/launch/splunk-innovation")
     assert r.status_code == 303 and r.headers["location"] == "https://splunk-innovation.example.invalid/"
     with app.state.db.conn() as db:
-        row = db.execute("SELECT actor, action, target FROM audit_log WHERE action='innovation.launch'").fetchone()
+        row = db.execute("SELECT actor, action, target FROM audit_log WHERE action='innovation.launch' AND target='splunk-innovation'").fetchone()
     assert tuple(row) == ("bob", "innovation.launch", "splunk-innovation")
     assert c.get("/inovasi/unknown").status_code == 404

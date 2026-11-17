@@ -40,13 +40,16 @@ def launch(platform_id: str, request: Request, p: Principal = Depends(require_us
     st = request.app.state
     plat = st.catalog.platforms.get(platform_id)
     item = st.catalog.innovation.get(platform_id)
-    if (plat is None or not plat.launcher) and item is None:
+    parent_uc = next(((i, u) for i in st.catalog.innovation.values() for u in i.use_cases if u.id == platform_id), None)
+    if (plat is None or not plat.launcher) and item is None and parent_uc is None:
         raise HTTPException(404)
     url = st.inventory.launch_url(platform_id)
     if not url:
-        return RedirectResponse(f"/inovasi/{platform_id}" if item else f"/p/{platform_id}", status_code=303)
+        fallback = (f"/inovasi/{platform_id}" if item else
+                    f"/inovasi/{parent_uc[0].id}/{platform_id}" if parent_uc else f"/p/{platform_id}")
+        return RedirectResponse(fallback, status_code=303)
     with st.db.conn() as c:
         audit.record(c, actor=p.username, actor_role=p.role,
-                     action="innovation.launch" if item else "platform.launch", target=platform_id,
+                     action="innovation.launch" if (item or parent_uc) else "platform.launch", target=platform_id,
                      result="success", ip=p.ip)
     return RedirectResponse(url, status_code=303)
