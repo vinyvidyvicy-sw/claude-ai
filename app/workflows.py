@@ -115,6 +115,7 @@ class UseCase:
     summary: str  # short explanation shown on the card
     icon: str = "bulb"
     assumption: bool = False
+    url: str | None = None  # default https address; inventory.yaml `launchers:` overrides it
 
 
 @dataclass(frozen=True)
@@ -183,7 +184,8 @@ def load(path: Path) -> WorkflowCatalog:
         for j, uc in enumerate(it.get("use_cases") or []):
             try:
                 u = UseCase(id=str(uc["id"]), title=str(uc["title"]), summary=str(uc.get("summary", "")),
-                            icon=str(uc.get("icon", "bulb")), assumption=bool(uc.get("assumption", False)))
+                            icon=str(uc.get("icon", "bulb")), assumption=bool(uc.get("assumption", False)),
+                            url=str(uc["url"]) if uc.get("url") else None)
             except (KeyError, TypeError):
                 problems.append(f"innovation[{i}].use_cases[{j}]: id and title are required")
                 continue
@@ -191,6 +193,8 @@ def load(path: Path) -> WorkflowCatalog:
                 problems.append(f"innovation[{i}].use_cases[{j}]: id must match {ID_RE.pattern}")
             if u.icon not in ICONS:
                 problems.append(f"innovation[{i}].use_cases[{j}]: unknown icon {u.icon!r}")
+            if u.url and not u.url.startswith("https://"):
+                problems.append(f"innovation[{i}].use_cases[{j}]: url must start with https://")
             if u.id in used_ids:
                 problems.append(f"innovation[{i}].use_cases[{j}]: duplicate id {u.id!r}")
             used_ids.add(u.id)

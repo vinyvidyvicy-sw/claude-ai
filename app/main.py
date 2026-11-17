@@ -29,6 +29,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     audit.configure(settings.audit_jsonl_file)
     catalog = workflows_mod.load(settings.workflows_file)  # fails fast on a bad config
     inventory = inventory_mod.load(settings.inventory_file)
+    for item in catalog.innovation.values():
+        for uc in item.use_cases:
+            if uc.url:
+                inventory.set_default_launcher(uc.id, uc.url)
     runs = RunManager(settings, db, catalog, inventory)
     runs.recover_interrupted()
 

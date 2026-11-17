@@ -334,15 +334,20 @@ def test_innovation_pages_and_launch(app):
     for title in ("Joint Planning Session", "Go To Market", "Document Procurement"):
         assert title in page.text
     assert page.text.count('class="icon"') == 4 and page.text.count("ASUMSI") == 3  # page icon + 3 cards
-    assert "Belum disiapkan (TODO)" in page.text
+    assert page.text.count("Belum disiapkan (TODO)") == 1 and page.text.count("Dibuka di tab baru") == 2  # only Document Procurement lacks an address
     assert c.get("/launch/metrodata-ai-use-case").headers["location"] == "/inovasi/metrodata-ai-use-case"
     # each dashboard has its own page; not configured -> TODO, launch falls back to that page
-    assert "belum dikonfigurasi" in c.get("/inovasi/metrodata-ai-use-case/go-to-market").text
-    assert c.get("/launch/go-to-market").headers["location"] == "/inovasi/metrodata-ai-use-case/go-to-market"
+    assert "belum dikonfigurasi" in c.get("/inovasi/metrodata-ai-use-case/document-procurement").text
+    assert c.get("/launch/document-procurement").headers["location"] == "/inovasi/metrodata-ai-use-case/document-procurement"
     app.state.inventory._launchers["document-procurement"] = "https://docs.example.invalid/"
     assert 'href="/launch/document-procurement"' in c.get("/inovasi/metrodata-ai-use-case").text
     r = c.get("/launch/document-procurement")
     assert r.status_code == 303 and r.headers["location"] == "https://docs.example.invalid/"
+    # the two dashboards with committed default addresses open straight away
+    for key, url in (("go-to-market", "https://metrodata-ai-gtm.netlify.app"),
+                     ("joint-planning-session", "https://metrodata-ai-jps.netlify.app")):
+        r = c.get(f"/launch/{key}")
+        assert r.status_code == 303 and r.headers["location"] == url
     assert c.get("/inovasi/metrodata-ai-use-case/nope").status_code == 404
     app.state.inventory._launchers["splunk-innovation"] = "https://splunk-innovation.example.invalid/"
     page = c.get("/inovasi/splunk-innovation")
@@ -353,3 +358,17 @@ def test_innovation_pages_and_launch(app):
         row = db.execute("SELECT actor, action, target FROM audit_log WHERE action='innovation.launch' AND target='splunk-innovation'").fetchone()
     assert tuple(row) == ("bob", "innovation.launch", "splunk-innovation")
     assert c.get("/inovasi/unknown").status_code == 404
+
+
+def test_inventory_launcher_overrides_default_and_default_must_be_https(app, tmp_path):
+    from app import workflows as wfm
+    from app.settings import ROOT
+    inv = app.state.inventory
+    inv._launchers["go-to-market"] = "https://override.example.invalid/"   # as from inventory.yaml
+    inv.set_default_launcher("go-to-market", "https://metrodata-ai-gtm.netlify.app")  # default must not replace it
+    assert inv.launch_url("go-to-market") == "https://override.example.invalid/"
+    bad = (ROOT / "config/workflows.yaml").read_text().replace("url: https://metrodata-ai-gtm.netlify.app", "url: http://insecure.example")
+    p = tmp_path / "w.yaml"; p.write_text(bad)
+    import pytest
+    with pytest.raises(wfm.WorkflowConfigError):
+        wfm.load(p)
