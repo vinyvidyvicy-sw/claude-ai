@@ -377,3 +377,13 @@ def test_inventory_launcher_overrides_default_and_default_must_be_https(app, tmp
 def test_portal_title(app):
     html = client_for(app).get("/login").text
     assert "Cisco &amp; Splunk Lab Portal" in html  # autoescaped in HTML
+
+
+def test_login_page_has_topology_background_and_rack_image(app):
+    html = client_for(app).get("/login").text
+    assert 'class="login-page"' in html and "/static/img/login-rack.jpg" in html
+    c = client_for(app)
+    for f in ("login-topology.jpg", "login-rack.jpg"):
+        assert c.get("/static/img/" + f).status_code == 200
+    css = c.get("/static/css/app.css").text
+    assert "login-topology.jpg" in css and "opacity: 0.10" in css

@@ -1,24 +1,30 @@
 {% extends "base.html" %}
 {% block title %}Masuk{% endblock %}
+{% block body_class %}login-page{% endblock %}
 {% block content %}
-<section class="card narrow" aria-labelledby="h">
-  {% if logos %}<div class="logos logos-login">{% for l in logos %}<img src="{{ l.src }}" alt="{{ l.alt }}" height="48">{% endfor %}</div>{% endif %}
-  <h1 id="h">Masuk</h1>
-  {% if notice %}<p class="notice" role="status">{{ notice }}</p>{% endif %}
-  {% if error %}<p class="alert" role="alert" data-focus>{{ error }}</p>{% endif %}
-  <form method="post" action="/login" autocomplete="on">
-    <input type="hidden" name="csrf_token" value="{{ login_csrf }}">
-    <input type="hidden" name="next" value="{{ next_url }}">
-    <div class="field">
-      <label for="username">Nama pengguna</label>
-      <input id="username" name="username" type="text" value="{{ username or '' }}" autocomplete="username"
-             autocapitalize="none" spellcheck="false" required maxlength="64" {% if not error %}autofocus{% endif %}>
-    </div>
-    <div class="field">
-      <label for="password">Kata sandi</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="257">
-    </div>
-    <button class="btn btn-primary" type="submit">Masuk</button>
-  </form>
-</section>
+<div class="login-layout">
+  <section class="card login-card" aria-labelledby="h">
+    {% if logos %}<div class="logos logos-login">{% for l in logos %}<img src="{{ l.src }}" alt="{{ l.alt }}" height="48">{% endfor %}</div>{% endif %}
+    <h1 id="h">Masuk</h1>
+    {% if notice %}<p class="notice" role="status">{{ notice }}</p>{% endif %}
+    {% if error %}<p class="alert" role="alert" data-focus>{{ error }}</p>{% endif %}
+    <form method="post" action="/login" autocomplete="on">
+      <input type="hidden" name="csrf_token" value="{{ login_csrf }}">
+      <input type="hidden" name="next" value="{{ next_url }}">
+      <div class="field">
+        <label for="username">Nama pengguna</label>
+        <input id="username" name="username" type="text" value="{{ username or '' }}" autocomplete="username"
+               autocapitalize="none" spellcheck="false" required maxlength="64" {% if not error %}autofocus{% endif %}>
+      </div>
+      <div class="field">
+        <label for="password">Kata sandi</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="257">
+      </div>
+      <button class="btn btn-primary" type="submit">Masuk</button>
+    </form>
+  </section>
+  <figure class="login-rack">
+    <img src="/static/img/login-rack.jpg" width="1024" height="559" alt="Rak perangkat jaringan dan server di lab">
+  </figure>
+</div>
 {% endblock %}
