@@ -1,8 +1,9 @@
 {% extends "base.html" %}
+{% from "_icons.html" import icon %}
 {% block title %}{{ platform.name }}{% endblock %}
 {% block content %}
 <nav aria-label="Breadcrumb" class="crumbs"><a href="/">Dashboard</a> / <span aria-current="page">{{ platform.name }}</span></nav>
-<h1>{{ platform.name }}</h1>
+<h1 class="with-icon">{{ icon(platform.icon, 34) }}<span>{{ platform.name }}</span></h1>
 <p class="lead">{{ platform.summary }}</p>
 <p class="todo"><strong>TODO:</strong> {{ platform.version_note }} {{ platform.interface_note }}</p>
 

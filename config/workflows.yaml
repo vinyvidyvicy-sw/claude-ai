@@ -16,42 +16,50 @@ schema_version: 1
 
 platforms:
   ise:
+    icon: shield
     name: Cisco ISE
     summary: Identity and policy services.
     interface_note: "Backend will likely use (UNCONFIRMED): ISE ERS / OpenAPI."
     version_note: "ISE version: TODO."
   sda:
+    icon: fabric
     name: Cisco SDA (Catalyst Center)
     summary: Software-defined access fabric, managed through Catalyst Center.
     interface_note: "Backend will likely use (UNCONFIRMED): Catalyst Center REST API."
     version_note: "Catalyst Center version: TODO."
   aci:
+    icon: cube
     name: Cisco ACI (APIC)
     summary: Application-centric fabric, managed through APIC.
     interface_note: "Backend will likely use (UNCONFIRMED): APIC REST API."
     version_note: "APIC version: TODO."
   nxos:
+    icon: switch-dc
     name: Cisco NX-OS switches
     summary: Nexus data-centre switches.
     interface_note: "Backend will likely use (UNCONFIRMED): NX-API or RESTCONF."
     version_note: "NX-OS version: TODO."
   catalyst:
+    icon: switch-campus
     name: Cisco Catalyst switches (IOS-XE)
     summary: Catalyst campus switches running IOS-XE.
     interface_note: "Backend will likely use (UNCONFIRMED): RESTCONF or NETCONF."
     version_note: "IOS-XE version: TODO."
   splunk:
+    icon: search-shield
     name: Splunk Enterprise Security
     summary: Security monitoring on Splunk Enterprise Security.
     interface_note: "Backend will likely use (UNCONFIRMED): Splunk REST API."
     version_note: "Splunk / ES version: TODO."
   esxi:
+    icon: server-stack
     name: VMware ESXi management
     summary: ESXi host management. TODO - confirm whether this means standalone ESXi hosts or vCenter.
     interface_note: "Backend will likely use (UNCONFIRMED): vSphere API."
     version_note: "ESXi / vCenter version: TODO."
 
   ekahau:
+    icon: wifi
     name: Ekahau Design
     summary: Wi-Fi site survey and design. Opens the Ekahau environment hosted on VMware.
     launcher: true     # tile opens an external tool; its https URL is set in config/inventory.yaml under `launchers:`

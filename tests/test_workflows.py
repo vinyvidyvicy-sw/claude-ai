@@ -291,6 +291,7 @@ def test_dashboard_has_one_tile_per_platform(app):
     login(c, "alice", "correct horse battery")
     html = c.get("/").text
     assert html.count('class="tile"') == 8
+    assert html.count('class="icon"') == 8 and "<rect x=\"4\" y=\"4\" width=\"16\"" not in html  # every tile has a real icon, none fell back to the placeholder
     for name in ("Cisco ISE", "Cisco SDA", "Cisco ACI", "NX-OS", "Catalyst switches", "Splunk Enterprise Security", "ESXi", "Ekahau Design"):
         assert name in html
 

@@ -19,6 +19,7 @@ import yaml
 from .inventory import Inventory
 from .redact import is_secret_name
 
+ICONS = {"shield", "fabric", "cube", "switch-dc", "switch-campus", "search-shield", "server-stack", "wifi"}
 PARAM_TYPES = {"string", "int", "bool", "enum", "ip", "cidr", "hostname", "device"}
 RISKS = ("low", "medium", "high")
 NAME_RE = re.compile(r"^[a-z][a-z0-9_]{0,40}$")
@@ -102,6 +103,7 @@ class Platform:
     interface_note: str  # note shown on the platform page (what the backend will talk to; unconfirmed)
     version_note: str
     console_note: str = ""  # optional hint for the "open console" links
+    icon: str = ""  # one of ICONS; drawn in templates/_icons.html
     launcher: bool = False  # tile opens an external tool (URL from inventory.yaml `launchers:`) instead of workflows
 
 
@@ -129,6 +131,8 @@ def load(path: Path) -> WorkflowCatalog:
         if not isinstance(p, dict) or not p.get("name"):
             problems.append(f"platform {pid}: name is required")
             continue
+        if p.get("icon") and p["icon"] not in ICONS:
+            problems.append(f"platform {pid}: unknown icon {p['icon']!r} (choose from {sorted(ICONS)})")
         catalog.platforms[str(pid)] = Platform(
             id=str(pid),
             name=str(p["name"]),
@@ -137,6 +141,7 @@ def load(path: Path) -> WorkflowCatalog:
             version_note=str(p.get("version_note", "TODO: confirm software/API version")),
             console_note=str(p.get("console_note", "")),
             launcher=bool(p.get("launcher", False)),
+            icon=str(p.get("icon", "")),
         )
 
     for i, w in enumerate(raw.get("workflows") or []):

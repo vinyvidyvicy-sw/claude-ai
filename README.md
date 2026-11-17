@@ -219,7 +219,7 @@ accepted, because the portal does not call devices.
 
 ## 6. Look and feel, accessibility
 
-Card-based light layout with a blue accent, system font stack. **Neutral placeholder theme: not Cisco branding.**
+Card-based light layout with a blue accent, a generic line icon beside each platform (`icon:` in `workflows.yaml`; drawn in `templates/_icons.html`, no vendor logos), system font stack. **Neutral placeholder theme: not Cisco branding.**
 No Cisco colours, fonts or logos are used because permission is unconfirmed (TODO). To apply approved branding,
 edit only `app/static/css/theme.css` (tokens) and the `TODO(brand)` spot in `templates/base.html`.
 Accessibility: skip link, landmarks, labelled fields with `aria-describedby`, error summary that receives focus,
