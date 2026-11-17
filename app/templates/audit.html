@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Audit log{% endblock %}
+{% block content %}
+<h1>Audit log</h1>
+<p class="lead">Append-only record of sign-ins, user administration and workflow activity. Secrets are never recorded.</p>
+<form method="get" action="/admin/audit" class="card row">
+  <div class="field"><label for="a">Actor</label><input id="a" name="actor" value="{{ actor }}" maxlength="64"></div>
+  <div class="field"><label for="ac">Action</label>
+    <select id="ac" name="action"><option value="">All</option>{% for a in actions %}<option value="{{ a }}" {{ 'selected' if a == action }}>{{ a }}</option>{% endfor %}</select></div>
+  <button class="btn btn-primary" type="submit">Filter</button>
+</form>
+<p class="meta">{{ total }} event{{ '' if total == 1 else 's' }} · page {{ page }} of {{ pages }}</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Audit table">
+<table>
+  <caption class="visually-hidden">Audit events, newest first</caption>
+  <thead><tr><th scope="col">Time (UTC)</th><th scope="col">Actor</th><th scope="col">Action</th><th scope="col">Target</th><th scope="col">Parameters</th><th scope="col">Result</th><th scope="col">Detail</th><th scope="col">IP</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr><td>{{ r.ts }}</td><td>{{ r.actor }}{% if r.actor_role %} <span class="meta">({{ r.actor_role }})</span>{% endif %}</td>
+      <td>{{ r.action }}</td><td>{{ r.target or '' }}</td><td><code>{{ r.params_json or '' }}</code></td>
+      <td>{{ r.result }}</td><td>{{ r.detail or '' }}</td><td>{{ r.ip or '' }}</td></tr>
+  {% else %}<tr><td colspan="8">No events match.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<nav aria-label="Pagination" class="pager">
+  {% if page > 1 %}<a href="?actor={{ actor|urlencode }}&action={{ action|urlencode }}&page={{ page - 1 }}">Newer</a>{% endif %}
+  {% if page < pages %}<a href="?actor={{ actor|urlencode }}&action={{ action|urlencode }}&page={{ page + 1 }}">Older</a>{% endif %}
+</nav>
+{% endblock %}

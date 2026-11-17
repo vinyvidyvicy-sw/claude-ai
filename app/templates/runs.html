@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Runs{% endblock %}
+{% block content %}
+<h1>Runs</h1>
+<p class="lead">The 100 most recent previews and runs.</p>
+{% if runs %}
+<div class="table-wrap" tabindex="0" role="region" aria-label="Runs table">
+<table>
+  <caption class="visually-hidden">Recent runs</caption>
+  <thead><tr><th scope="col">Created (UTC)</th><th scope="col">Workflow</th><th scope="col">By</th><th scope="col">Status</th><th scope="col">Mode</th><th scope="col">Result</th></tr></thead>
+  <tbody>
+  {% for r in runs %}
+    <tr>
+      <td>{{ r.created_at }}</td>
+      <th scope="row"><a href="/runs/{{ r.id }}">{{ catalog.workflows[r.workflow_id].title if r.workflow_id in catalog.workflows else r.workflow_id }}</a></th>
+      <td>{{ r.username }}</td>
+      <td><span class="badge badge-status-{{ r.status }}">{{ r.status }}</span></td>
+      <td>{{ r.mode }}</td><td>{{ r.result_summary or '' }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}<p>No runs yet.</p>{% endif %}
+{% endblock %}

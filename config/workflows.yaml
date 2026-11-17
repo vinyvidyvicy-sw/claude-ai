@@ -1,0 +1,199 @@
+# Workflow catalogue. Add workflows here; no code changes needed.
+# Rules (enforced at startup - a bad file stops the portal with a list of problems):
+#   * parameters never hold secrets (names like password/token/secret/community are rejected);
+#     device credentials come from the secrets store via the inventory's credential_ref.
+#   * `request: TODO` means the device API call for that step is NOT yet confirmed. Such steps
+#     show in the preview but refuse to run live. Replace TODO with a mapping once the
+#     interface/version is confirmed (see README "Adding a workflow").
+#   * {placeholders} refer to parameter names and are substituted as plain text.
+#
+# EVERY workflow below is an ASSUMPTION: the real workflow list has not been provided.
+schema_version: 1
+
+platforms:
+  ise:
+    name: Cisco ISE
+    summary: Identity and policy services.
+    interface_note: "Candidate interface (UNCONFIRMED): ISE ERS / OpenAPI."
+    version_note: "ISE version: TODO."
+  sda:
+    name: Cisco SDA (Catalyst Center)
+    summary: Software-defined access fabric, managed through Catalyst Center.
+    interface_note: "Candidate interface (UNCONFIRMED): Catalyst Center REST API."
+    version_note: "Catalyst Center version: TODO."
+  aci:
+    name: Cisco ACI (APIC)
+    summary: Application-centric fabric, managed through APIC.
+    interface_note: "Candidate interface (UNCONFIRMED): APIC REST API."
+    version_note: "APIC version: TODO."
+  nxos:
+    name: Cisco NX-OS switches
+    summary: Nexus data-centre switches.
+    interface_note: "Candidate interfaces (UNCONFIRMED): NX-API or RESTCONF."
+    version_note: "NX-OS version: TODO."
+  catalyst:
+    name: Cisco Catalyst switches (IOS-XE)
+    summary: Catalyst campus switches running IOS-XE.
+    interface_note: "Candidate interfaces (UNCONFIRMED): RESTCONF or NETCONF."
+    version_note: "IOS-XE version: TODO."
+  splunk:
+    name: Splunk Enterprise Security
+    summary: Security monitoring on Splunk Enterprise Security.
+    interface_note: "Candidate interface (UNCONFIRMED): Splunk REST API."
+    version_note: "Splunk / ES version: TODO."
+  esxi:
+    name: VMware ESXi management
+    summary: ESXi host management. TODO - confirm whether this means standalone ESXi hosts or vCenter.
+    interface_note: "Candidate interface (UNCONFIRMED): vSphere API."
+    version_note: "ESXi / vCenter version: TODO."
+
+workflows:
+  - id: ise-create-endpoint-group
+    platform: ise
+    title: Create endpoint identity group
+    description: Create an endpoint identity group on an ISE node.
+    risk: low
+    assumption: true
+    notes:
+      - "ASSUMPTION: sample workflow and parameters only. Request definition is TODO until the ISE API and version are confirmed."
+    parameters:
+      - {name: device, label: ISE node, type: device, help: Choose the ISE node from the inventory.}
+      - {name: group_name, label: Group name, type: string, pattern: '[A-Za-z0-9][A-Za-z0-9_ .-]{1,63}', pattern_hint: "2-64 characters: letters, digits, space, '.', '_' or '-'.", max_length: 64}
+      - {name: description, label: Description, type: string, required: false, max_length: 200}
+    plan:
+      summary: "Create endpoint identity group '{group_name}' on {device}"
+      steps:
+        - id: create-group
+          description: "Create endpoint identity group '{group_name}' (description: '{description}')"
+          interface: ise-api   # TODO: ERS vs OpenAPI
+          write: true
+          request: TODO
+
+  - id: sda-create-virtual-network
+    platform: sda
+    title: Create virtual network
+    description: Create a virtual network (VN) in the SDA fabric.
+    risk: medium
+    assumption: true
+    notes:
+      - "ASSUMPTION: sample workflow and parameters only. Request definition is TODO until the Catalyst Center API and version are confirmed."
+    parameters:
+      - {name: device, label: Catalyst Center, type: device}
+      - {name: vn_name, label: Virtual network name, type: string, pattern: '[A-Za-z][A-Za-z0-9_-]{1,31}', pattern_hint: "2-32 characters: start with a letter; letters, digits, '_' or '-'.", max_length: 32}
+    plan:
+      summary: "Create virtual network '{vn_name}' via {device}"
+      steps:
+        - id: create-vn
+          description: "Create virtual network '{vn_name}'"
+          interface: catalyst-center-api
+          write: true
+          request: TODO
+
+  - id: aci-create-tenant
+    platform: aci
+    title: Create tenant
+    description: Create a tenant on an APIC cluster.
+    risk: medium
+    assumption: true
+    notes:
+      - "ASSUMPTION: sample workflow and parameters only. Request definition is TODO until the APIC API and version are confirmed."
+    parameters:
+      - {name: device, label: APIC, type: device}
+      - {name: tenant_name, label: Tenant name, type: string, pattern: '[A-Za-z0-9][A-Za-z0-9_.-]{0,63}', pattern_hint: "1-64 characters: letters, digits, '_', '.' or '-'.", max_length: 64}
+      - {name: description, label: Description, type: string, required: false, max_length: 128}
+    plan:
+      summary: "Create tenant '{tenant_name}' on {device}"
+      steps:
+        - id: create-tenant
+          description: "Create tenant '{tenant_name}'"
+          interface: apic-rest
+          write: true
+          request: TODO
+
+  - id: nxos-create-vlan
+    platform: nxos
+    title: Create VLAN
+    description: Create a VLAN on an NX-OS switch.
+    risk: low
+    assumption: true
+    notes:
+      - "ASSUMPTION: sample workflow. Reserved VLAN ranges for the target NX-OS version are TODO; the 2-3967 range below is a placeholder. Request definition is TODO until NX-API vs RESTCONF is chosen."
+    parameters:
+      - {name: device, label: Switch, type: device}
+      - {name: vlan_id, label: VLAN ID, type: int, min: 2, max: 3967, help: "Placeholder range; TODO confirm reserved VLANs."}
+      - {name: vlan_name, label: VLAN name, type: string, pattern: '[A-Za-z0-9_-]{1,32}', pattern_hint: "1-32 characters: letters, digits, '_' or '-'.", max_length: 32}
+    plan:
+      summary: "Create VLAN {vlan_id} ('{vlan_name}') on {device}"
+      steps:
+        - id: create-vlan
+          description: "Create VLAN {vlan_id} named '{vlan_name}'"
+          interface: nxos-api   # TODO: NX-API or RESTCONF
+          write: true
+          request: TODO
+
+  - id: catalyst-set-access-port
+    platform: catalyst
+    title: Configure access port
+    description: Set the access VLAN and description on a Catalyst switch interface.
+    risk: medium
+    assumption: true
+    notes:
+      - "ASSUMPTION: sample workflow. The interface-name pattern is a placeholder. Request definition is TODO until RESTCONF vs NETCONF is chosen."
+    parameters:
+      - {name: device, label: Switch, type: device}
+      - {name: interface, label: Interface, type: string, pattern: '[A-Za-z]+[0-9]+(/[0-9]+){0,3}', pattern_hint: "Example: GigabitEthernet1/0/1 (placeholder pattern).", max_length: 40}
+      - {name: vlan_id, label: Access VLAN, type: int, min: 1, max: 4094}
+      - {name: port_description, label: Port description, type: string, required: false, pattern: '[ -~]{0,80}', pattern_hint: "Printable ASCII, up to 80 characters.", max_length: 80}
+    plan:
+      summary: "Set {interface} on {device} to access VLAN {vlan_id}"
+      steps:
+        - id: set-port
+          description: "On {interface}: access VLAN {vlan_id}, description '{port_description}'"
+          interface: iosxe-api   # TODO: RESTCONF or NETCONF
+          write: true
+          request: TODO
+
+  - id: splunk-toggle-correlation-search
+    platform: splunk
+    title: Enable or disable a correlation search
+    description: Enable or disable a named correlation search in Splunk Enterprise Security.
+    risk: high
+    assumption: true
+    notes:
+      - "ASSUMPTION: sample workflow. Disabling detections reduces monitoring coverage; consider requiring a second approver (TODO). Request definition is TODO until the Splunk/ES version is confirmed."
+    parameters:
+      - {name: device, label: Splunk search head, type: device}
+      - {name: search_name, label: Correlation search name, type: string, pattern: '[ -~]{3,150}', pattern_hint: "Printable ASCII, 3-150 characters.", max_length: 150}
+      - name: state
+        label: Desired state
+        type: enum
+        choices: [{value: enabled, label: Enabled}, {value: disabled, label: Disabled}]
+    plan:
+      summary: "Set correlation search '{search_name}' to {state} on {device}"
+      steps:
+        - id: toggle-search
+          description: "Set correlation search '{search_name}' to {state}"
+          interface: splunk-rest
+          write: true
+          request: TODO
+
+  - id: esxi-enter-maintenance-mode
+    platform: esxi
+    title: Enter maintenance mode
+    description: Put an ESXi host into maintenance mode.
+    risk: high
+    assumption: true
+    notes:
+      - "ASSUMPTION: sample workflow. Applicability to standalone ESXi vs vCenter is TODO. Request definition is TODO until the vSphere API and version are confirmed."
+    parameters:
+      - {name: device, label: ESXi host, type: device}
+      - {name: timeout_seconds, label: Timeout (seconds), type: int, min: 60, max: 7200, default: 600}
+      - {name: evacuate_powered_off_vms, label: Also evacuate powered-off VMs, type: bool, required: false}
+    plan:
+      summary: "Enter maintenance mode on {device} (timeout {timeout_seconds}s)"
+      steps:
+        - id: enter-maintenance
+          description: "Enter maintenance mode on {device}, timeout {timeout_seconds}s, evacuate powered-off VMs: {evacuate_powered_off_vms}"
+          interface: vsphere-api
+          write: true
+          request: TODO

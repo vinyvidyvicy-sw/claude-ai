@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Platforms</h1>
+<p class="lead">Choose a platform to see its predefined workflows.</p>
+<ul class="tiles" aria-label="Platforms">
+  {% for t in tiles %}
+  <li class="tile">
+    <h2><a class="tile-link" href="/p/{{ t.platform.id }}">{{ t.platform.name }}</a></h2>
+    <p>{{ t.platform.summary }}</p>
+    <p class="meta">{{ t.workflow_count }} workflow{{ '' if t.workflow_count == 1 else 's' }} ·
+       {{ t.device_count }} device{{ '' if t.device_count == 1 else 's' }}</p>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}

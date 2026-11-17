@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ platform.name }}{% endblock %}
+{% block content %}
+<nav aria-label="Breadcrumb" class="crumbs"><a href="/">Dashboard</a> / <span aria-current="page">{{ platform.name }}</span></nav>
+<h1>{{ platform.name }}</h1>
+<p class="lead">{{ platform.summary }}</p>
+<p class="todo"><strong>TODO:</strong> {{ platform.version_note }} {{ platform.interface_note }}</p>
+
+<h2>Workflows</h2>
+{% if workflows %}
+<ul class="cards">
+  {% for w in workflows %}
+  <li class="card">
+    <h3><a href="/p/{{ platform.id }}/{{ w.id }}">{{ w.title }}</a></h3>
+    <p>{{ w.description }}</p>
+    <p class="badges">
+      <span class="badge badge-risk-{{ w.risk }}">Risk: {{ w.risk }}</span>
+      {% if w.assumption %}<span class="badge badge-assume">ASSUMPTION</span>{% endif %}
+    </p>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}<p>No workflows are defined for this platform yet. Add one in <code>config/workflows.yaml</code>.</p>{% endif %}
+
+<h2>Devices</h2>
+{% if devices %}
+<table>
+  <caption class="visually-hidden">Devices in the inventory for {{ platform.name }}</caption>
+  <thead><tr><th scope="col">Name</th><th scope="col">Management address</th><th scope="col">Credential configured</th></tr></thead>
+  <tbody>
+  {% for d in devices %}
+    <tr><th scope="row">{{ d.device.name }}</th><td>{{ d.device.address }}</td>
+        <td>{{ 'Yes' if d.creds else 'No' }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p>No devices in the inventory for this platform. See <code>config/inventory.example.yaml</code>.</p>{% endif %}
+{% endblock %}

@@ -1,0 +1,32 @@
+/*
+ * NEUTRAL PLACEHOLDER THEME.  TODO(brand): not confirmed as official.
+ * The organisation has not confirmed whether Cisco brand colours, fonts or logos may be used,
+ * so none are used here. Once brand assets are approved, change ONLY the tokens in this file
+ * (colours, font stack) and add the logo in templates/base.html where marked TODO(brand).
+ * All pairings below are checked against WCAG 2.1 AA by tests/test_contrast.py.
+ */
+:root {
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-bg: #ffffff;
+  --color-surface: #f3f5f7;
+  --color-text: #1c2733;
+  --color-muted: #4b5a69;
+  --color-border: #6c7a89;          /* >= 3:1 on bg for input/control boundaries */
+  --color-border-soft: #d3d9df;
+
+  --color-accent: #0a5aa8;          /* links, primary buttons */
+  --color-accent-hover: #084581;
+  --color-on-accent: #ffffff;
+  --color-focus: #0a5aa8;
+
+  --color-danger: #b3261e;
+  --color-on-danger: #ffffff;
+  --color-danger-bg: #fdecea;
+  --color-success: #1b6e3a;
+  --color-warn-bg: #fff4d6;
+  --color-warn-text: #5c4300;
+  --color-info-bg: #e8f1fb;
+  --color-info-text: #12385f;
+}

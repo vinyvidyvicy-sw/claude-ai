@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_title }}{% endblock %} · {{ app_title }}</title>
+  <link rel="stylesheet" href="/static/css/theme.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="container header-row">
+      {# TODO(brand): official logo goes here only once the organisation confirms it may use it. #}
+      <a class="brand" href="/">{{ app_title }}</a>
+      {% if principal %}
+      <nav aria-label="Primary" class="nav">
+        <ul>
+          <li><a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>Dashboard</a></li>
+          <li><a href="/runs" {% if request.url.path.startswith('/runs') %}aria-current="page"{% endif %}>Runs</a></li>
+          {% if principal.is_admin %}
+          <li><a href="/admin/users" {% if request.url.path.startswith('/admin/users') %}aria-current="page"{% endif %}>Users</a></li>
+          <li><a href="/admin/audit" {% if request.url.path.startswith('/admin/audit') %}aria-current="page"{% endif %}>Audit log</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+      <div class="account">
+        <a href="/account/password">{{ principal.username }} <span class="role">({{ principal.role }})</span></a>
+        <form method="post" action="/logout">
+          <input type="hidden" name="csrf_token" value="{{ csrf }}">
+          <button class="btn btn-quiet" type="submit">Sign out</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    {% if principal %}
+    <div class="mode-bar {{ 'mode-live' if execution_mode == 'live' else 'mode-dry' }}" role="note">
+      <div class="container">
+        {% if execution_mode == 'live' %}
+          <strong>LIVE mode</strong> — confirmed workflows may write to devices.
+        {% else %}
+          <strong>DRY-RUN mode</strong> — confirmed workflows are simulated; no device is contacted.
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </header>
+
+  <main id="main" tabindex="-1" class="container">
+    {% if flash %}<p class="notice" role="status">{{ flash }}</p>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="container site-footer">
+    <small>Internal use only. Actions are recorded in the audit log.</small>
+  </footer>
+  <script src="/static/js/app.js" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

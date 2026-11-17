@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Run {{ run.id[:8] }}{% endblock %}
+{% block content %}
+<nav aria-label="Breadcrumb" class="crumbs"><a href="/">Dashboard</a> / <a href="/p/{{ run.platform }}">{{ platform.name if platform else run.platform }}</a> / <span aria-current="page">Run {{ run.id[:8] }}</span></nav>
+<h1>{{ workflow.title if workflow else run.workflow_id }}</h1>
+{% if error %}<p class="alert" role="alert" data-focus>{{ error }}</p>{% endif %}
+
+<dl class="facts">
+  <div><dt>Status</dt><dd><span id="run-status" class="badge badge-status-{{ run.status }}">{{ run.status }}</span></dd></div>
+  <div><dt>Requested by</dt><dd>{{ run.username }}</dd></div>
+  <div><dt>Created</dt><dd>{{ run.created_at }}</dd></div>
+  <div><dt>Mode</dt><dd>{{ 'LIVE' if run.mode == 'live' and live else 'Dry-run (no device contact)' }}</dd></div>
+</dl>
+
+<section aria-labelledby="params-h" class="card">
+  <h2 id="params-h">Parameters</h2>
+  <dl class="facts">{% for k, v in params.items() %}<div><dt>{{ k }}</dt><dd>{{ v }}</dd></div>{% endfor %}</dl>
+</section>
+
+<section aria-labelledby="plan-h" class="card">
+  <h2 id="plan-h">{{ 'Dry-run preview' if run.status == 'previewed' else 'Planned changes' }}</h2>
+  <p><strong>{{ plan.summary }}</strong></p>
+  <p class="help">{{ plan.read_only_note }}</p>
+  <ol class="steps">
+    {% for s in plan.steps %}
+    <li>
+      <p>{{ s.description }}</p>
+      <p class="meta">Target: {{ s.target }}{% if s.address %} ({{ s.address }}){% endif %} · Interface: {{ s.interface }} ·
+        {{ 'WRITE' if s.write else 'read-only' }}{% if not s.request_defined %} · <span class="todo-inline">request definition TODO</span>{% endif %}</p>
+      {% if s.request %}<pre class="code" tabindex="0">{{ s.request | tojson(indent=2) }}</pre>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  <p class="meta">{{ plan.writes }} write step(s){% if plan.unresolved_todo %} · {{ plan.unresolved_todo }} step(s) with TODO request definitions (these will refuse to run live){% endif %}.</p>
+</section>
+
+{% if run.status == 'previewed' %}
+<section aria-labelledby="confirm-h" class="card confirm">
+  <h2 id="confirm-h">Confirm</h2>
+  {% if can_confirm %}
+    <p>{% if live %}<strong>Confirming will apply these changes to the devices listed above.</strong>
+       {% else %}Confirming will run a <strong>simulation only</strong>: the portal is in dry-run mode and will not contact any device.{% endif %}
+       This preview expires at {{ run.expires_at }}.</p>
+    <form method="post" action="/runs/{{ run.id }}/confirm" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <button class="btn {{ 'btn-danger' if live else 'btn-primary' }}" type="submit">{{ 'Confirm and apply' if live else 'Confirm (simulate)' }}</button>
+    </form>
+    <form method="post" action="/runs/{{ run.id }}/cancel" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <button class="btn btn-secondary" type="submit">Cancel</button>
+    </form>
+  {% else %}
+    <p>Only the user who created this preview ({{ run.username }}) can confirm it.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+<section aria-labelledby="log-h" class="card">
+  <h2 id="log-h">Run log</h2>
+  <p id="run-summary" class="meta">{{ run.result_summary or '' }}</p>
+  <pre class="code log" id="run-log" tabindex="0" aria-live="off" aria-label="Run log"
+       data-run-id="{{ run.id }}" data-status="{{ run.status }}">{% for l in logs %}{{ l.ts }} {{ l.level|upper }} {{ l.message }}
+{% endfor %}</pre>
+  <noscript>{% if run.status == 'running' %}<p>Reload this page to see progress.</p>{% endif %}</noscript>
+</section>
+{% endblock %}
+{% block scripts %}<script src="/static/js/run.js" defer></script>{% endblock %}

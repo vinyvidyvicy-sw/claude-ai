@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ workflow.title }}{% endblock %}
+{% block content %}
+<nav aria-label="Breadcrumb" class="crumbs"><a href="/">Dashboard</a> / <a href="/p/{{ platform.id }}">{{ platform.name }}</a> / <span aria-current="page">{{ workflow.title }}</span></nav>
+<h1>{{ workflow.title }}</h1>
+<p class="badges">
+  <span class="badge badge-risk-{{ workflow.risk }}">Risk: {{ workflow.risk }}</span>
+  {% if workflow.assumption %}<span class="badge badge-assume">ASSUMPTION</span>{% endif %}
+</p>
+<p class="lead">{{ workflow.description }}</p>
+{% for n in workflow.notes %}<p class="todo">{{ n }}</p>{% endfor %}
+
+{% if errors %}
+<div class="alert" role="alert" tabindex="-1" data-focus>
+  <p><strong>Please fix {{ errors|length }} problem{{ '' if errors|length == 1 else 's' }}:</strong></p>
+  <ul>{% for name, msg in errors.items() %}<li><a href="#f-{{ name }}">{{ msg }}</a></li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+{% if principal.can_run %}
+<form method="post" action="/p/{{ platform.id }}/{{ workflow.id }}/preview" novalidate class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  {% for p in workflow.params %}
+  {% set err = errors.get(p.name) %}
+  <div class="field {{ 'has-error' if err }}">
+    {% if p.type == 'bool' %}
+      <label class="check"><input id="f-{{ p.name }}" type="checkbox" name="{{ p.name }}" {{ 'checked' if values.get(p.name) in (True, 'on') }}
+        {% if p.help %}aria-describedby="h-{{ p.name }}"{% endif %}> {{ p.label }}</label>
+    {% else %}
+      <label for="f-{{ p.name }}">{{ p.label }}{% if p.required %} <span class="req">(required)</span>{% endif %}</label>
+    {% endif %}
+    {% if p.help %}<p class="help" id="h-{{ p.name }}">{{ p.help }}</p>{% endif %}
+    {% if err %}<p class="error" id="e-{{ p.name }}">{{ err }}</p>{% endif %}
+    {% set desc = ((('h-' ~ p.name) if p.help else '') ~ ' ' ~ (('e-' ~ p.name) if err else '')).strip() %}
+    {% if p.type == 'device' %}
+      <select id="f-{{ p.name }}" name="{{ p.name }}" {{ 'required' if p.required }} {% if desc %}aria-describedby="{{ desc }}"{% endif %} {% if err %}aria-invalid="true"{% endif %}>
+        <option value="">Select a device…</option>
+        {% for d in devices %}<option value="{{ d.name }}" {{ 'selected' if values.get(p.name) == d.name }}>{{ d.name }} ({{ d.address }})</option>{% endfor %}
+      </select>
+    {% elif p.type == 'enum' %}
+      <select id="f-{{ p.name }}" name="{{ p.name }}" {{ 'required' if p.required }} {% if desc %}aria-describedby="{{ desc }}"{% endif %} {% if err %}aria-invalid="true"{% endif %}>
+        <option value="">Select…</option>
+        {% for v, label in p.choices %}<option value="{{ v }}" {{ 'selected' if values.get(p.name) == v }}>{{ label }}</option>{% endfor %}
+      </select>
+    {% elif p.type == 'bool' %}
+    {% else %}
+      <input id="f-{{ p.name }}" name="{{ p.name }}" type="{{ 'number' if p.type == 'int' else 'text' }}"
+        value="{{ values.get(p.name, '') if values.get(p.name) is not none else '' }}"
+        {% if p.type == 'int' %}inputmode="numeric" {% if p.min is not none %}min="{{ p.min }}"{% endif %} {% if p.max is not none %}max="{{ p.max }}"{% endif %}{% endif %}
+        maxlength="{{ p.max_length }}" autocomplete="off" spellcheck="false" {{ 'required' if p.required }}
+        {% if desc %}aria-describedby="{{ desc }}"{% endif %} {% if err %}aria-invalid="true"{% endif %}>
+    {% endif %}
+  </div>
+  {% endfor %}
+  <p class="help">Next you will see a dry-run preview. Nothing is sent to any device until you confirm it.</p>
+  <button class="btn btn-primary" type="submit">Preview changes</button>
+  <a class="btn btn-secondary" href="/p/{{ platform.id }}">Cancel</a>
+</form>
+{% else %}
+<p class="notice">Your role (<strong>{{ principal.role }}</strong>) is read-only: you can view this workflow but not run it.</p>
+{% endif %}
+{% endblock %}

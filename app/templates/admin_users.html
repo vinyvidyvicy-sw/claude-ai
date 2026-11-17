@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h1>Users</h1>
+{% if errors %}<div class="alert" role="alert" data-focus tabindex="-1"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+
+<section class="card" aria-labelledby="new-h">
+  <h2 id="new-h">Create user</h2>
+  <p class="help">A one-time temporary password is generated and shown once. The user must change it at first sign-in.</p>
+  <form method="post" action="/admin/users" class="row">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <div class="field"><label for="nu">Username</label>
+      <input id="nu" name="username" value="{{ form_username }}" required maxlength="32" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+    <div class="field"><label for="nr">Role</label>
+      <select id="nr" name="role" required>{% for r in roles %}<option value="{{ r }}" {{ 'selected' if r == 'engineer' }}>{{ r }}</option>{% endfor %}</select></div>
+    <button class="btn btn-primary" type="submit">Create user</button>
+  </form>
+</section>
+
+<div class="table-wrap" tabindex="0" role="region" aria-label="Users table">
+<table>
+  <caption class="visually-hidden">All users</caption>
+  <thead><tr><th scope="col">Username</th><th scope="col">Role</th><th scope="col">State</th><th scope="col">Last sign-in (UTC)</th><th scope="col">Actions</th></tr></thead>
+  <tbody>
+  {% for u in users %}
+    <tr>
+      <th scope="row">{{ u.username }}</th><td>{{ u.role }}</td>
+      <td>{% if not u.is_active %}Disabled{% elif is_locked(u) %}Locked{% else %}Active{% endif %}{% if u.must_change_password %} · must change password{% endif %}</td>
+      <td>{{ u.last_login_at or 'never' }}</td>
+      <td class="actions">
+        {% for act, label in (('disable','Disable') if u.is_active else ('enable','Enable'), ('reset','Reset password'), ('unlock','Unlock')) %}
+        {% if act != 'unlock' or is_locked(u) %}
+        <form method="post" action="/admin/users/{{ u.id }}/{{ act }}" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf }}">
+          <button class="btn btn-small" type="submit" aria-label="{{ label }} {{ u.username }}">{{ label }}</button>
+        </form>
+        {% endif %}
+        {% endfor %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

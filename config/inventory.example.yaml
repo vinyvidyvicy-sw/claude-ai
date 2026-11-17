@@ -1,0 +1,13 @@
+# Device inventory. Copy to config/inventory.yaml (git-ignored) and edit.
+# ASSUMPTION: names and addresses below are placeholders (192.0.2.0/24 is the documentation range).
+# credential_ref is the NAME of a credential, never the secret. Supply the secret via:
+#   env  PORTAL_CRED_<REF>_USERNAME / PORTAL_CRED_<REF>_PASSWORD   (REF upper-cased, non-alphanumerics -> '_')
+#   or   files in $PORTAL_SECRETS_DIR named <ref>_username / <ref>_password
+devices:
+  - {name: ise-lab-1,   platform: ise,      address: 192.0.2.10, credential_ref: ise-lab}
+  - {name: dnac-lab-1,  platform: sda,      address: 192.0.2.11, credential_ref: dnac-lab}
+  - {name: apic-lab-1,  platform: aci,      address: 192.0.2.12, credential_ref: apic-lab}
+  - {name: nxos-lab-1,  platform: nxos,     address: 192.0.2.13, credential_ref: nxos-lab}
+  - {name: cat-lab-1,   platform: catalyst, address: 192.0.2.14, credential_ref: catalyst-lab}
+  - {name: splunk-lab-1, platform: splunk,  address: 192.0.2.15, credential_ref: splunk-lab}
+  - {name: esxi-lab-1,  platform: esxi,     address: 192.0.2.16, credential_ref: esxi-lab}
