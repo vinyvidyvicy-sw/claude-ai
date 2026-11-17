@@ -51,6 +51,13 @@ platforms:
     interface_note: "Backend will likely use (UNCONFIRMED): vSphere API."
     version_note: "ESXi / vCenter version: TODO."
 
+  ekahau:
+    name: Ekahau Design
+    summary: Wireless site survey and Wi-Fi design requests. TODO - confirm which Ekahau product (Ekahau AI Pro desktop, Ekahau Cloud or other) and how the backend will reach it.
+    interface_note: "Backend will likely use (UNCONFIRMED): TODO - depends on the Ekahau product and its integration options."
+    version_note: "Ekahau product and version: TODO."
+    console_note: "TODO: add a console_url under a device entry only if a web console exists for this product."
+
 workflows:
   - id: ise-create-endpoint-group
     platform: ise
@@ -204,6 +211,37 @@ workflows:
       steps:
         - id: enter-maintenance
           description: "Enter maintenance mode on {device}, timeout {timeout_seconds}s, evacuate powered-off VMs: {evacuate_powered_off_vms}"
+          write: true
+    dispatch:
+      backend: TODO   # name of the registered automation backend
+      job: TODO       # job/playbook/template id inside that backend
+
+  - id: ekahau-request-wifi-design
+    platform: ekahau
+    title: Request a Wi-Fi design
+    description: Ask for a predictive Wi-Fi design (and later a validation survey) for a site, so the wireless team can plan access-point placement.
+    risk: low
+    assumption: true
+    notes:
+      - "ASSUMPTION: sample workflow and parameters only. What Ekahau actually needs (floor plans, requirements, project templates) and how the request is fulfilled are TODO. Backend and job (dispatch) are TODO."
+    parameters:
+      - {name: site_name, label: Site name, type: string, pattern: '[A-Za-z0-9][A-Za-z0-9 ._-]{1,63}', pattern_hint: "2-64 characters: letters, digits, space, '.', '_' or '-'.", max_length: 64}
+      - {name: floors, label: Number of floors, type: int, min: 1, max: 100}
+      - name: coverage_goal
+        label: Coverage goal
+        type: enum
+        choices: [{value: data, label: Data}, {value: voice, label: Voice and data}, {value: location, label: Data and location services}]
+      - name: band
+        label: Frequency band
+        type: enum
+        choices: [{value: dual, label: 2.4 GHz and 5 GHz}, {value: tri, label: 2.4, 5 and 6 GHz}]
+      - {name: notes, label: Notes for the wireless team, type: string, required: false, max_length: 500}
+    plan:
+      summary: "Request a Wi-Fi design for '{site_name}' ({floors} floor(s), {coverage_goal}, {band})"
+      steps:
+        - id: request-design
+          description: "Create a Wi-Fi design request for '{site_name}': {floors} floor(s), goal {coverage_goal}, band {band}. Notes: '{notes}'"
+          target: "{site_name}"
           write: true
     dispatch:
       backend: TODO   # name of the registered automation backend

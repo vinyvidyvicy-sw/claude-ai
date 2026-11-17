@@ -3,7 +3,7 @@
 Internal web portal: an engineer picks a predefined workflow for a platform, fills in a validated form,
 reviews a **dry-run preview**, **explicitly confirms**, and watches the run and its log.
 Platforms: Cisco ISE, Cisco SDA (Catalyst Center), Cisco ACI (APIC), NX-OS, Catalyst IOS-XE,
-Splunk Enterprise Security, VMware ESXi.
+Splunk Enterprise Security, VMware ESXi, Ekahau Design (wireless site survey/design requests).
 
 > **This portal is a front end, not a configuration engine.** It collects and validates a request, shows a
 > preview, records the engineer's explicit approval, and hands the request to a separate **automation backend**

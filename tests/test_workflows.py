@@ -8,7 +8,7 @@ from app.inventory import Device, Inventory
 from app.settings import ROOT
 from conftest import client_for, csrf_from, login, session_csrf
 
-PLATFORMS = {"ise", "sda", "aci", "nxos", "catalyst", "splunk", "esxi"}
+PLATFORMS = {"ise", "sda", "aci", "nxos", "catalyst", "splunk", "esxi", "ekahau"}
 INV = Inventory([Device("nxos-lab-1", "nxos", "192.0.2.13")])
 
 
@@ -258,12 +258,22 @@ def test_audit_never_contains_secrets(app, tmp_path):
     assert "correct horse battery" not in open(app.state.settings.db_path, "rb").read().decode("latin1")
 
 
+def test_ekahau_request_flow_without_device(app):
+    c = client_for(app)
+    login(c, "bob", "staple battery horse")
+    page = "/p/ekahau/ekahau-request-wifi-design"
+    data = {"site_name": "HQ Jakarta", "floors": "3", "coverage_goal": "voice", "band": "tri", "csrf_token": session_csrf(c, page)}
+    r = c.post(page + "/preview", data=data)
+    assert r.status_code == 303
+    assert "HQ Jakarta" in c.get(r.headers["location"]).text
+
+
 def test_dashboard_has_one_tile_per_platform(app):
     c = client_for(app)
     login(c, "alice", "correct horse battery")
     html = c.get("/").text
-    assert html.count('class="tile"') == 7
-    for name in ("Cisco ISE", "Cisco SDA", "Cisco ACI", "NX-OS", "Catalyst switches", "Splunk Enterprise Security", "ESXi"):
+    assert html.count('class="tile"') == 8
+    for name in ("Cisco ISE", "Cisco SDA", "Cisco ACI", "NX-OS", "Catalyst switches", "Splunk Enterprise Security", "ESXi", "Ekahau Design"):
         assert name in html
 
 

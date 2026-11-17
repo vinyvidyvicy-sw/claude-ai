@@ -21,7 +21,7 @@ th { background: #f3f5f7; }
 <h1>Network Automation Portal</h1>
 <p class="sub">Local setup guide: MacBook, Windows laptop, and sharing the code with other engineers</p>
 
-<div class="info"><b>What you are running.</b> A <b>front-end portal</b> for engineers to request predefined configuration workflows (Cisco ISE, SDA, ACI, NX-OS, Catalyst, Splunk ES, ESXi). The portal does not configure devices and holds no device credentials: it collects and checks the request, shows a preview, records the approval, and hands the request to a separate <b>automation backend</b> that does the work. It opens in your browser at <code>http://localhost:8000</code>. It is in <b>dry-run mode</b>: confirmed requests are simulated and nothing is sent to any backend or device. All sample workflows are ASSUMPTION samples and the backend is not yet connected (TODO).</div>
+<div class="info"><b>What you are running.</b> A <b>front-end portal</b> for engineers to request predefined configuration workflows (Cisco ISE, SDA, ACI, NX-OS, Catalyst, Splunk ES, ESXi, Ekahau Design). The portal does not configure devices and holds no device credentials: it collects and checks the request, shows a preview, records the approval, and hands the request to a separate <b>automation backend</b> that does the work. It opens in your browser at <code>http://localhost:8000</code>. It is in <b>dry-run mode</b>: confirmed requests are simulated and nothing is sent to any backend or device. All sample workflows are ASSUMPTION samples and the backend is not yet connected (TODO).</div>
 
 <table>
 <tr><th>Item</th><th>Value</th></tr>
@@ -194,7 +194,7 @@ git checkout ccr-5a472752-cizl40</pre>
 
 <h2>Quick test checklist</h2>
 <ol>
-<li>Sign in as admin. The dashboard shows 7 platform tiles and both logos.</li>
+<li>Sign in as admin. The dashboard shows 8 platform tiles and both logos.</li>
 <li>Open Cisco NX-OS switches, Create VLAN, choose <code>nxos-lab-1</code>, VLAN 100, name <code>users</code>, click Preview changes.</li>
 <li>Click Confirm (simulate) and watch the log. Nothing is sent to a backend or device.</li>
 <li>Users menu: create an engineer. Copy the one-time temporary password (shown once).</li>
