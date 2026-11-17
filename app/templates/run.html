@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Proses {{ run.id[:8] }}{% endblock %}
 {% block content %}
-<nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dasbor</a> / <a href="/p/{{ run.platform }}">{{ platform.name if platform else run.platform }}</a> / <span aria-current="page">Proses {{ run.id[:8] }}</span></nav>
+<nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dashboard</a> / <a href="/p/{{ run.platform }}">{{ platform.name if platform else run.platform }}</a> / <span aria-current="page">Proses {{ run.id[:8] }}</span></nav>
 <h1>{{ workflow.title if workflow else run.workflow_id }}</h1>
 {% if error %}<p class="alert" role="alert" data-focus>{{ error }}</p>{% endif %}
 

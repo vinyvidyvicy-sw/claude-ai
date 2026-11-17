@@ -20,7 +20,7 @@ devices:
 #     url: https://<address-of-ekahau-design>
 #   metrodata-ai-use-case:         # menu Inovasi
 #     url: https://<address-of-metrodata-ai-use-case-page>
-#   joint-planning-session:        # dasbor di dalam Metrodata AI Use Case
+#   joint-planning-session:        # dashboard di dalam Metrodata AI Use Case
 #     url: https://<address-of-joint-planning-session-dashboard>
 #   go-to-market:
 #     url: https://<address-of-go-to-market-dashboard>

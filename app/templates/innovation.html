@@ -2,13 +2,13 @@
 {% from "_icons.html" import icon %}
 {% block title %}{{ item.title }}{% endblock %}
 {% block content %}
-<nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dasbor</a> / Inovasi / <span aria-current="page">{{ item.title }}</span></nav>
+<nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dashboard</a> / Inovasi / <span aria-current="page">{{ item.title }}</span></nav>
 <h1 class="with-icon">{{ icon(item.icon, 34) }}<span>{{ item.title }}</span></h1>
 <p class="lead">{{ item.summary }}</p>
 
 {% if cards %}
-<h2>Dasbor</h2>
-<ul class="tiles" aria-label="Dasbor {{ item.title }}">
+<h2>Dashboard</h2>
+<ul class="tiles" aria-label="Dashboard {{ item.title }}">
   {% for c in cards %}
   <li class="tile">
     <div class="tile-head">

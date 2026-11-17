@@ -2,14 +2,14 @@
 {% from "_icons.html" import icon %}
 {% block title %}{{ uc.title }}{% endblock %}
 {% block content %}
-<nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dasbor</a> / Inovasi / <a href="/inovasi/{{ item.id }}">{{ item.title }}</a> / <span aria-current="page">{{ uc.title }}</span></nav>
+<nav aria-label="Jalur halaman" class="crumbs"><a href="/">Dashboard</a> / Inovasi / <a href="/inovasi/{{ item.id }}">{{ item.title }}</a> / <span aria-current="page">{{ uc.title }}</span></nav>
 <h1 class="with-icon">{{ icon(uc.icon, 34) }}<span>{{ uc.title }}</span></h1>
 {% if uc.assumption %}<p class="badges"><span class="badge badge-assume">ASUMSI</span></p>{% endif %}
 <p class="lead">{{ uc.summary }}</p>
 {% if launch_url %}
-<p><a class="btn btn-primary" href="/launch/{{ uc.id }}" target="_blank" rel="noopener noreferrer">Buka dasbor {{ uc.title }}<span class="visually-hidden"> (dibuka di tab baru)</span></a></p>
+<p><a class="btn btn-primary" href="/launch/{{ uc.id }}" target="_blank" rel="noopener noreferrer">Buka dashboard {{ uc.title }}<span class="visually-hidden"> (dibuka di tab baru)</span></a></p>
 {% else %}
-<p class="todo"><strong>TODO:</strong> alamat dasbor {{ uc.title }} belum dikonfigurasi. Administrator menambahkannya di <code>config/inventory.yaml</code> pada bagian <code>launchers:</code> dengan kunci <code>{{ uc.id }}</code> (lihat <code>config/inventory.example.yaml</code>) lalu memulai ulang portal.</p>
+<p class="todo"><strong>TODO:</strong> alamat dashboard {{ uc.title }} belum dikonfigurasi. Administrator menambahkannya di <code>config/inventory.yaml</code> pada bagian <code>launchers:</code> dengan kunci <code>{{ uc.id }}</code> (lihat <code>config/inventory.example.yaml</code>) lalu memulai ulang portal.</p>
 {% endif %}
 <p><a href="/inovasi/{{ item.id }}">Kembali ke {{ item.title }}</a></p>
 {% endblock %}

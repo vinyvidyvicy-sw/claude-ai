@@ -398,3 +398,10 @@ def test_login_title_centered_bold(app):
     assert html.count('class="logos"') == 1  # logos only in the header (top-right), not repeated in the card
     css = client_for(app).get("/static/css/app.css").text
     assert ".login-title { text-align: center; font-weight: 700;" in css and "margin-left: auto" in css
+
+
+def test_dashboard_wording(app):
+    c = client_for(app)
+    login(c, "bob", "staple battery horse")
+    html = c.get("/").text
+    assert ">Dashboard</a>" in html and "Dasbor" not in html and "dasbor" not in html
